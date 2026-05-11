@@ -4,10 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,7 +17,6 @@ const SIGNAL_FIRE_URL_PATTERN = /\/t\/([a-z0-9-]+)/;
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
-  const [manualSlug, setManualSlug] = useState("");
   const hasNavigated = useRef(false);
 
   function handleBarCodeScanned({ data }: { data: string }) {
@@ -37,12 +33,6 @@ export default function ScanScreen() {
     } else {
       Alert.alert("Not a Signal Fire QR code", "Try scanning an orange totem QR code.");
     }
-  }
-
-  function handleManualEntry() {
-    const slug = manualSlug.trim().toLowerCase().replace(/\s+/g, "-");
-    if (!slug) return;
-    router.push(`/totem/${slug}`);
   }
 
   if (!permission) return <View style={styles.container} />;
@@ -92,26 +82,9 @@ export default function ScanScreen() {
         </View>
 
         {/* Bottom */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.bottom}
-        >
+        <View style={styles.bottom}>
           <Text style={styles.hint}>Align the totem QR code inside the frame.</Text>
-          <View style={styles.manualRow}>
-            <TextInput
-              style={styles.manualInput}
-              value={manualSlug}
-              onChangeText={setManualSlug}
-              placeholder="Or enter a totem code manually"
-              placeholderTextColor="rgba(255,255,255,0.5)"
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="go"
-              onSubmitEditing={handleManualEntry}
-              accessibilityLabel="Enter totem code manually"
-            />
-          </View>
-        </KeyboardAvoidingView>
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -199,17 +172,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sans,
     fontSize: FontSize.sm,
     color: "rgba(255,255,255,0.8)",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  manualRow: {},
-  manualInput: {
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.4)",
-    paddingVertical: 10,
-    fontFamily: FontFamily.sans,
-    fontSize: FontSize.sm,
-    color: Colors.white,
     textAlign: "center",
   },
 });

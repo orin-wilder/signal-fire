@@ -79,34 +79,6 @@ describe("ScanScreen — QR scanning", () => {
   });
 });
 
-describe("ScanScreen — manual entry", () => {
-  it("navigates to totem on manual submit", () => {
-    render(<ScanScreen />);
-    fireEvent.changeText(
-      screen.getByLabelText("Enter totem code manually"),
-      "williams-park"
-    );
-    fireEvent(screen.getByLabelText("Enter totem code manually"), "submitEditing");
-    expect(mockRouter.push).toHaveBeenCalledWith("/totem/williams-park");
-  });
-
-  it("does not navigate when manual input is empty", () => {
-    render(<ScanScreen />);
-    fireEvent(screen.getByLabelText("Enter totem code manually"), "submitEditing");
-    expect(mockRouter.push).not.toHaveBeenCalled();
-  });
-
-  it("normalizes slug — trims and lowercases", () => {
-    render(<ScanScreen />);
-    fireEvent.changeText(
-      screen.getByLabelText("Enter totem code manually"),
-      "  Williams Park  "
-    );
-    fireEvent(screen.getByLabelText("Enter totem code manually"), "submitEditing");
-    expect(mockRouter.push).toHaveBeenCalledWith("/totem/williams-park");
-  });
-});
-
 describe("ScanScreen — close button", () => {
   it("calls router.back on close", () => {
     render(<ScanScreen />);
