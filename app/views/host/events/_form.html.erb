@@ -1,18 +1,55 @@
 <%
   field_class = "w-full px-3 py-2 bg-white border border-stone/40 rounded-lg text-ink focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember transition text-sm"
   label_class = "block text-sm font-medium text-ink mb-1"
-  existing_recurrence = event.recurring? ? "weekly" : "one_time"
-  existing_day = event.start_time&.wday || Time.current.wday
-  existing_date = event.start_time&.to_date&.iso8601 || ""
-  existing_start_time = event.start_time&.strftime("%H:%M") || ""
-  existing_end_time   = event.end_time&.strftime("%H:%M")   || ""
+
+  existing_rule = event.recurrence_rule.to_s
+  if existing_rule.include?("FREQ=WEEKLY")
+    existing_interval = existing_rule.match(/INTERVAL=(\d+)/)&.then { |m| m[1].to_i } || 1
+    if existing_interval == 2
+      existing_chip = "biweekly"
+    elsif existing_interval == 1
+      existing_chip = "weekly"
+    else
+      existing_chip = "custom"
+    end
+  elsif existing_rule.include?("FREQ=MONTHLY")
+    existing_chip = "monthly"
+  elsif existing_rule.present?
+    existing_chip = "custom"
+  else
+    existing_chip = "one_time"
+  end
+
+  existing_day     = event.start_time&.wday || Time.current.wday
+  existing_date    = event.start_time&.to_date&.iso8601 || ""
+  existing_start_t = event.start_time&.strftime("%H:%M") || ""
+  existing_end_t   = event.end_time&.strftime("%H:%M")   || ""
+
+  monthly_ordinal  = "1"
+  monthly_weekday  = "MO"
+  monthly_bymonthday = event.start_time&.day || 1
+  if existing_rule.include?("BYDAY=") && existing_rule.include?("FREQ=MONTHLY")
+    byday_match = existing_rule.match(/BYDAY=(-?\d)([A-Z]{2})/)
+    if byday_match
+      monthly_ordinal = byday_match[1]
+      monthly_weekday = byday_match[2]
+    end
+  end
+  if existing_rule.include?("BYMONTHDAY=")
+    monthly_bymonthday = existing_rule.match(/BYMONTHDAY=(\d+)/)[1].to_i rescue monthly_bymonthday
+  end
+
+  monthly_subtype = existing_rule.include?("BYMONTHDAY") ? "same_day" : "nth_weekday"
+
+  chip_active   = "bg-ink text-white border-ink"
+  chip_inactive = "bg-white text-ink border-stone/30"
 %>
 
 <%= form_with model: [:host, event], class: "space-y-0", data: { controller: "event-form" } do |f| %>
-  <%# Hidden recurrence type input driven by Stimulus %>
+  <%# Hidden RRULE input — written by Stimulus %>
   <input type="hidden"
-         name="event[recurrence_type]"
-         value="<%= existing_recurrence %>"
+         name="event[recurrence_rule]"
+         value="<%= existing_rule %>"
          data-event-form-target="recurrenceInput">
 
   <% if event.errors.any? %>
@@ -48,57 +85,147 @@
               class: field_class %>
       </div>
 
-      <%# Event type toggle %>
+      <%# Recurrence — 5-chip picker %>
       <fieldset>
-        <legend class="<%= label_class %>">Event type</legend>
-        <div class="flex rounded-lg overflow-hidden border border-stone/30 w-fit">
-          <button type="button"
-                  data-event-form-target="recurringBtn"
-                  data-action="click->event-form#selectRecurring"
-                  class="px-5 py-2 text-sm font-medium transition <%= existing_recurrence == 'weekly' ? 'bg-ember text-white' : 'bg-white text-ink border-r border-stone/30' %>">
-            Recurring · weekly
-          </button>
-          <button type="button"
-                  data-event-form-target="oneTimeBtn"
-                  data-action="click->event-form#selectOneTime"
-                  class="px-5 py-2 text-sm font-medium transition <%= existing_recurrence == 'one_time' ? 'bg-ember text-white' : 'bg-white text-ink' %>">
-            One-time
-          </button>
+        <legend class="<%= label_class %>">Recurrence</legend>
+        <div class="flex flex-wrap gap-2">
+          <% [
+            ["weekly",   "Weekly"],
+            ["one_time", "One-time"],
+            ["monthly",  "Monthly"],
+            ["biweekly", "Every other week"],
+            ["custom",   "Custom"],
+          ].each do |chip_id, label| %>
+            <button type="button"
+                    data-event-form-target="chip"
+                    data-chip-id="<%= chip_id %>"
+                    data-action="click->event-form#selectChip"
+                    class="px-4 py-2 text-sm font-medium border rounded-lg transition <%= existing_chip == chip_id ? chip_active : chip_inactive %>">
+              <%= label %>
+            </button>
+          <% end %>
         </div>
       </fieldset>
 
-      <%# Day & time %>
+      <%# Day & time — fields change based on active chip %>
       <div>
         <label class="<%= label_class %>">Day &amp; time</label>
         <div class="space-y-2">
-          <%# Row 1: day-of-week (weekly) or date (one-time) %>
-          <div data-event-form-target="weeklyDayField" class="<%= existing_recurrence == 'one_time' ? 'hidden' : '' %>">
-            <select name="event[start_day_of_week]" class="<%= field_class %>">
+
+          <%# Day-of-week select (weekly / biweekly) %>
+          <div data-event-form-target="weeklyDayField"
+               class="<%= %w[weekly biweekly].include?(existing_chip) ? '' : 'hidden' %>">
+            <select name="event[start_day_of_week]"
+                    data-event-form-target="daySelect"
+                    data-action="change->event-form#updateRule"
+                    class="<%= field_class %>">
               <% %w[Sunday Monday Tuesday Wednesday Thursday Friday Saturday].each_with_index do |day, i| %>
                 <option value="<%= i %>" <%= "selected" if existing_day == i %>><%= day %></option>
               <% end %>
             </select>
           </div>
 
-          <div data-event-form-target="oneDateField" class="<%= existing_recurrence == 'weekly' ? 'hidden' : '' %>">
+          <%# Date input (one-time / monthly / custom — not weekly/biweekly) %>
+          <div data-event-form-target="oneDateField"
+               class="<%= %w[one_time monthly custom].include?(existing_chip) ? '' : 'hidden' %>">
+            <p data-event-form-target="customDateHint"
+               class="text-xs text-stone mb-1 <%= existing_chip == 'custom' ? '' : 'hidden' %>">
+              Starting from (first occurrence of this pattern)
+            </p>
             <input type="date"
                    name="event[start_date]"
                    value="<%= existing_date %>"
+                   data-event-form-target="dateInput"
+                   data-action="change->event-form#updateRule"
                    class="<%= field_class %>"
-                   <%= "required" if existing_recurrence == "one_time" %>>
+                   <%= "required" if %w[one_time custom].include?(existing_chip) %>>
           </div>
 
-          <%# Row 2: start time → end time %>
+          <%# Monthly sub-picker %>
+          <div data-event-form-target="monthlySubpicker"
+               class="<%= existing_chip == 'monthly' ? '' : 'hidden' %> bg-stone/5 border border-stone/20 rounded-lg p-3 space-y-3">
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="radio"
+                     name="_monthly_type"
+                     value="same_day"
+                     data-event-form-target="monthlyTypeRadio"
+                     data-action="change->event-form#updateRule"
+                     <%= "checked" if monthly_subtype == "same_day" %>>
+              Same day of month (e.g., the <%= monthly_bymonthday.ordinalize %>)
+            </label>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="radio"
+                     name="_monthly_type"
+                     value="nth_weekday"
+                     data-event-form-target="monthlyTypeRadio"
+                     data-action="change->event-form#updateRule"
+                     <%= "checked" if monthly_subtype == "nth_weekday" %>>
+              Specific weekday of the month
+            </label>
+            <div data-event-form-target="monthlyNthSelects"
+                 class="flex items-center gap-2 pl-6 <%= monthly_subtype == 'nth_weekday' ? '' : 'hidden' %>">
+              <select data-event-form-target="monthlyWeekdaySelect"
+                      data-action="change->event-form#updateRule"
+                      class="<%= field_class %> w-auto">
+                <% [["MO","Monday"],["TU","Tuesday"],["WE","Wednesday"],["TH","Thursday"],["FR","Friday"],["SA","Saturday"],["SU","Sunday"]].each do |val, name| %>
+                  <option value="<%= val %>" <%= "selected" if monthly_weekday == val %>><%= name %></option>
+                <% end %>
+              </select>
+              <select data-event-form-target="monthlyOrdinalSelect"
+                      data-action="change->event-form#updateRule"
+                      class="<%= field_class %> w-auto">
+                <option value="1"  <%= "selected" if monthly_ordinal == "1"  %>>First</option>
+                <option value="2"  <%= "selected" if monthly_ordinal == "2"  %>>Second</option>
+                <option value="3"  <%= "selected" if monthly_ordinal == "3"  %>>Third</option>
+                <option value="4"  <%= "selected" if monthly_ordinal == "4"  %>>Fourth</option>
+                <option value="-1" <%= "selected" if monthly_ordinal == "-1" %>>Last</option>
+              </select>
+            </div>
+          </div>
+
+          <%# Custom RRULE builder %>
+          <div data-event-form-target="customBuilder"
+               class="<%= existing_chip == 'custom' ? '' : 'hidden' %> bg-stone/5 border border-stone/20 rounded-lg p-3 space-y-3">
+            <div class="flex items-center gap-2 text-sm">
+              <span class="text-stone">Repeats every</span>
+              <input type="number" min="1" max="52" value="1"
+                     data-event-form-target="customInterval"
+                     data-action="input->event-form#updateRule"
+                     class="w-16 px-2 py-1 border border-stone/40 rounded text-sm text-center">
+              <select data-event-form-target="customFreq"
+                      data-action="change->event-form#updateRule"
+                      class="px-2 py-1 border border-stone/40 rounded text-sm">
+                <option value="WEEKLY">week(s)</option>
+                <option value="MONTHLY">month(s)</option>
+              </select>
+            </div>
+            <div>
+              <p class="text-xs text-stone mb-2">On:</p>
+              <div class="flex gap-2 flex-wrap">
+                <% [["SU","Su"],["MO","Mo"],["TU","Tu"],["WE","We"],["TH","Th"],["FR","Fr"],["SA","Sa"]].each do |val, abbr| %>
+                  <label class="flex flex-col items-center gap-1 cursor-pointer">
+                    <input type="checkbox"
+                           data-event-form-target="customWeekday"
+                           data-action="change->event-form#updateRule"
+                           value="<%= val %>">
+                    <span class="text-xs text-stone"><%= abbr %></span>
+                  </label>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <%# Start → end time (always visible) %>
           <div class="flex items-center gap-2">
             <input type="time"
                    name="event[start_time_of_day]"
-                   value="<%= existing_start_time %>"
+                   value="<%= existing_start_t %>"
                    required
                    class="<%= field_class %> w-36">
             <span class="text-stone text-sm shrink-0">to</span>
             <input type="time"
                    name="event[end_time_of_day]"
-                   value="<%= existing_end_time %>"
+                   value="<%= existing_end_t %>"
                    required
                    class="<%= field_class %> w-36">
           </div>
@@ -148,16 +275,10 @@
         </div>
       </div>
 
-      <%# Info panel %>
-      <div class="bg-stone/5 border border-stone/20 rounded-xl p-4 text-sm text-stone">
-        <p class="font-medium text-ink mb-1">Heads up.</p>
-        <p>V1 recurrence is weekly or one-time. Monthly and custom patterns are coming soon.</p>
-      </div>
-
-      <%# URL validation error copy %>
+      <%# URL validation info %>
       <div class="bg-stone/5 border border-stone/20 rounded-xl p-4 text-xs text-stone">
         <p class="font-medium text-ink mb-1">URL validation</p>
-        <p>V1 supports WhatsApp, Discord, Telegram, Signal, GroupMe, and Slack group links.</p>
+        <p>Supports WhatsApp, Discord, Telegram, Signal, GroupMe, and Slack group links.</p>
       </div>
     </div>
   </div>

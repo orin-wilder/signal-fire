@@ -39,7 +39,7 @@ class Host::EventsControllerTest < ActionDispatch::IntegrationTest
         event: {
           title: "New Test Run",
           totem_id: @totem.id,
-          recurrence_type: "one_time",
+          recurrence_rule: "",
           start_date: date.iso8601,
           start_time_of_day: "07:00",
           end_time_of_day: "09:00",
@@ -58,7 +58,7 @@ class Host::EventsControllerTest < ActionDispatch::IntegrationTest
         event: {
           title: "Weekly Run",
           totem_id: @totem.id,
-          recurrence_type: "weekly",
+          recurrence_rule: "FREQ=WEEKLY;BYDAY=SU",
           start_day_of_week: "0",
           start_time_of_day: "07:00",
           end_time_of_day: "09:00",
@@ -76,7 +76,7 @@ class Host::EventsControllerTest < ActionDispatch::IntegrationTest
         event: {
           title: "Bad URL Run",
           totem_id: @totem.id,
-          recurrence_type: "one_time",
+          recurrence_rule: "",
           start_date: 2.days.from_now.to_date.iso8601,
           start_time_of_day: "07:00",
           end_time_of_day: "09:00",
@@ -124,6 +124,48 @@ class Host::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  # ── Custom recurrence (INTERVAL > 2) bug fixes ──────────────────────────
+
+  test "POST /host/events with custom WEEKLY rule uses start_date, not start_day_of_week" do
+    monday = Date.new(2026, 5, 18)  # a Monday
+    post host_events_path, params: {
+      event: {
+        title:             "Every 5 Weeks Monday Yoga",
+        totem_id:          @totem.id,
+        recurrence_rule:   "FREQ=WEEKLY;INTERVAL=5;BYDAY=MO",
+        start_date:        monday.iso8601,
+        start_day_of_week: "4",  # Thursday — should be ignored for custom rules
+        start_time_of_day: "09:00",
+        end_time_of_day:   "10:00",
+        chat_platform:     "whatsapp",
+        chat_url:          "https://chat.whatsapp.com/customweekly"
+      }
+    }
+    event = Event.find_by!(title: "Every 5 Weeks Monday Yoga")
+    assert_equal monday, event.start_time.to_date,
+      "start_time must be based on start_date (Monday), not start_day_of_week (Thursday)"
+  end
+
+  test "GET /host/events/:id/edit shows custom chip active for INTERVAL=5 event" do
+    event = Event.create!(
+      totem:            @totem,
+      host_user:        @host,
+      title:            "Every 5 Weeks",
+      slug:             "every-5-weeks",
+      recurrence_rule:  "FREQ=WEEKLY;INTERVAL=5;BYDAY=MO",
+      start_time:       1.week.from_now.change(hour: 9),
+      end_time:         1.week.from_now.change(hour: 10),
+      chat_platform:    "whatsapp",
+      chat_url:         "https://chat.whatsapp.com/every5weeks"
+    )
+    get edit_host_event_path(event)
+    assert_response :success
+    # The "Custom" chip button must carry the active classes
+    assert_select "button[data-chip-id='custom'].bg-ink", count: 1
+    # The "Weekly" chip must NOT be active
+    assert_select "button[data-chip-id='weekly'].bg-ink", count: 0
+  end
+
   test "POST /host/events tracks host_event_created with correct properties" do
     date = 2.days.from_now.to_date
     tracked = []
@@ -132,7 +174,7 @@ class Host::EventsControllerTest < ActionDispatch::IntegrationTest
         event: {
           title: "Analytics Test Event",
           totem_id: @totem.id,
-          recurrence_type: "one_time",
+          recurrence_rule: "",
           start_date: date.iso8601,
           start_time_of_day: "09:00",
           end_time_of_day: "11:00",

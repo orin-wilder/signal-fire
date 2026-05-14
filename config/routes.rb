@@ -14,12 +14,17 @@ Rails.application.routes.draw do
   get  "/about",                                      to: "pages#about",                       as: :about
   get  "/t/:slug",                                    to: "totems/boards#show",                as: :totem_board
   get  "/t/:slug/e/:event_slug",                      to: "totems/events#show",                as: :totem_event
+  get  "/t/:slug/e/:event_slug/calendar.ics",         to: "totems/events#calendar",            as: :event_calendar
   post "/t/:slug/e/:event_slug/check_ins",            to: "totems/check_ins#create",           as: :totem_event_check_ins
   get  "/t/:slug/e/:event_slug/check_ins/success",   to: "totems/check_ins#success",          as: :totem_event_check_in_success
   post "/empty_totem_email_captures",                 to: "empty_totem_email_captures#create", as: :empty_totem_email_captures
 
-  # Web totem favorite toggle (session auth)
+  # Web totem favorite toggle and host follow (session auth)
   resources :totem_favorites, only: [:create, :destroy]
+  resources :host_follows,    only: [:create, :destroy]
+
+  # Client-side analytics proxy
+  post "/analytics/track", to: "analytics#track"
 
   # Regular user auth (web, magic link)
   get    "/sign_up",           to: "auth/user_registrations#new",    as: :sign_up

@@ -15,8 +15,8 @@
 
     <p class="mt-2 text-sm text-[#867a60]">
       <% occurrence = @event.next_occurrence %>
-      <% if @event.weekly? %>
-        Every <%= occurrence.strftime("%A") %> · <%= occurrence.strftime("%-I:%M %p") %> – <%= @event.end_time.strftime("%-I:%M %p") %>
+      <% if @event.recurring? %>
+        <%= @event.recurrence_label %> · <%= occurrence.strftime("%-I:%M %p") %> – <%= @event.end_time.strftime("%-I:%M %p") %>
       <% else %>
         <%= occurrence.strftime("%A · %B %-d · %-I:%M %p") %>
       <% end %>
@@ -27,14 +27,32 @@
     </p>
   </header>
 
-  <main class="px-4 pt-6 pb-40 space-y-6">
+  <main class="px-4 pt-6 pb-48 space-y-6">
+    <%# Inline Follow host row (§6.4) %>
     <% if @host_profile %>
-      <section>
-        <h2 class="font-mono text-xs tracking-widest text-[#867a60] uppercase mb-2">About the host</h2>
-        <p class="text-[#1a1a12]">
-          <strong><%= @host_profile.display_name %></strong>
-          <% if @host_profile.blurb.present? %> — <%= @host_profile.blurb %><% end %>
-        </p>
+      <section class="flex items-start justify-between gap-4">
+        <div>
+          <p class="font-mono text-xs tracking-widest text-[#867a60] uppercase mb-1">Host</p>
+          <%= link_to @host_profile.slug.present? ? host_page_path(@host_profile.slug) : "#",
+                class: "font-semibold text-[#1a1a12] hover:underline" do %>
+            <%= @host_profile.display_name %>
+          <% end %>
+          <% if @host_profile.blurb.present? %>
+            <p class="text-sm text-[#867a60] mt-0.5"><%= @host_profile.blurb %></p>
+          <% end %>
+        </div>
+        <% if current_user %>
+          <%= button_to @host_follow ? "Following" : "+ Follow",
+                @host_follow ? host_follow_path(@host_follow) : host_follows_path,
+                method: @host_follow ? :delete : :post,
+                params: @host_follow ? {} : { host_user_id: @event.host_user_id },
+                class: "shrink-0 text-sm font-medium px-4 py-2 rounded-lg border transition #{@host_follow ? 'bg-[#1a1a12] text-white border-[#1a1a12]' : 'bg-transparent text-[#1a1a12] border-[#867a60]/40 hover:border-[#1a1a12]'}" %>
+        <% else %>
+          <a href="#app-nudge"
+             class="shrink-0 text-sm font-medium px-4 py-2 rounded-lg border border-[#867a60]/40 text-[#1a1a12] hover:border-[#1a1a12] transition">
+            + Follow
+          </a>
+        <% end %>
       </section>
     <% end %>
 
@@ -57,10 +75,27 @@
 
     <%= render "join_chat_button", event: @event %>
 
+    <%# Save to calendar (§6.2) %>
+    <% unless @event.cancelled? %>
+      <%= link_to "Save to my calendar",
+            event_calendar_path(@totem.slug, @event.slug),
+            class: "block w-full text-center border border-[#867a60]/40 text-[#1a1a12] font-medium rounded-lg px-4 py-3 bg-transparent hover:border-[#1a1a12] transition" %>
+    <% end %>
+
+    <%# Share event (§6.3) %>
+    <button data-controller="share"
+            data-share-url-value="<%= request.original_url %>"
+            data-share-title-value="<%= @event.title %>"
+            data-share-event-id-value="<%= @event.id %>"
+            data-action="click->share#share"
+            class="block w-full text-center border border-[#867a60]/40 text-[#1a1a12] font-medium rounded-lg px-4 py-3 bg-transparent hover:border-[#1a1a12] transition">
+      Share this event
+    </button>
+
     <% if app_nudges_enabled? && !@event.cancelled? %>
       <button data-action="click->app-nudge#open"
-              class="block w-full text-center border border-[#867a60]/40 text-[#1a1a12] font-medium rounded-lg px-4 py-3 bg-transparent hover:border-[#867a60] transition-colors">
-        Get notified about this group
+              class="block w-full text-center border border-[#867a60]/40 text-[#1a1a12] font-medium rounded-lg px-4 py-3 bg-transparent hover:border-[#867a60] transition">
+        Follow in the app — never miss a <%= @event.recurrence_label.present? ? @event.recurrence_label.split.last : "session" %>
       </button>
     <% end %>
   </div>

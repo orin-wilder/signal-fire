@@ -85,7 +85,7 @@ class Admin::EventsController < Admin::ApplicationController
 
   def event_params
     raw = params.require(:event).permit(
-      :title, :totem_id, :recurrence_type,
+      :title, :totem_id, :recurrence_rule,
       :start_day_of_week, :start_date, :start_time_of_day, :end_time_of_day,
       :description, :community_norms,
       :chat_platform, :chat_url

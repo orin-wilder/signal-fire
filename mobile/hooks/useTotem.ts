@@ -7,6 +7,8 @@ export interface EventHost {
   slug: string | null;
   name: string;
   blurb: string | null;
+  following: boolean | null;
+  host_follow_id: number | null;
 }
 
 export interface Event {
@@ -24,6 +26,8 @@ export interface Event {
   description: string | null;
   community_norms: string | null;
   window_state: string;
+  share_url: string;
+  calendar_url: string;
   host: EventHost;
   user_checked_in: boolean | null;
   checked_in_at: string | null;

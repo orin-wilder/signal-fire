@@ -63,4 +63,22 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
                                 event_slug: event.slug), as: :json
     assert_equal "happening_now", response.parsed_body.dig("event", "window_state").to_s
   end
+
+  test "event response includes share_url and calendar_url" do
+    event = events(:upcoming_event)
+    get api_v1_totem_event_path(totem_slug: totems(:main_totem).slug,
+                                event_slug: event.slug), as: :json
+    assert_response :success
+    body = response.parsed_body["event"]
+    assert_includes body["share_url"],    "/t/#{event.totem.slug}/e/#{event.slug}"
+    assert_includes body["calendar_url"], "/t/#{event.totem.slug}/e/#{event.slug}/calendar.ics"
+  end
+
+  test "event response includes recurrence_label for recurring event" do
+    event = events(:weekly_event)
+    get api_v1_totem_event_path(totem_slug: totems(:main_totem).slug,
+                                event_slug: event.slug), as: :json
+    assert_response :success
+    assert response.parsed_body.dig("event", "recurrence_label").present?
+  end
 end

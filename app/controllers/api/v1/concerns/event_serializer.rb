@@ -9,12 +9,14 @@ module Api::V1::Concerns::EventSerializer
   def build_event_json(event)
     host_profile = event.host_user.host_profile
 
-    check_in = nil
-    following = nil
+    check_in    = nil
+    following   = nil
+    host_follow = nil
 
     if current_user
-      check_in = @check_ins_by_event&.fetch(event.id, nil)
-      following = @followed_host_ids&.include?(event.host_user_id) || false
+      check_in    = @check_ins_by_event&.fetch(event.id, nil)
+      following   = @followed_host_ids&.include?(event.host_user_id) || false
+      host_follow = @host_follows_by_host_id&.fetch(event.host_user_id, nil)
     end
 
     {
@@ -33,11 +35,15 @@ module Api::V1::Concerns::EventSerializer
       community_norms: event.community_norms,
       window_state: event.window_state,
       host: {
-        id: event.host_user_id,
-        slug: host_profile&.slug,
-        name: host_profile&.display_name || event.host_user.name,
-        blurb: host_profile&.blurb
+        id:             event.host_user_id,
+        slug:           host_profile&.slug,
+        name:           host_profile&.display_name || event.host_user.name,
+        blurb:          host_profile&.blurb,
+        following:      following,
+        host_follow_id: host_follow&.id
       },
+      share_url:        "https://signalfire.live/t/#{event.totem.slug}/e/#{event.slug}",
+      calendar_url:     "https://signalfire.live/t/#{event.totem.slug}/e/#{event.slug}/calendar.ics",
       user_checked_in: current_user ? check_in.present? : nil,
       checked_in_at: check_in&.checked_in_at&.iso8601,
       following: following
@@ -75,8 +81,8 @@ module Api::V1::Concerns::EventSerializer
     @check_ins_by_event = current_user.check_ins
       .where(event_id: event_ids)
       .index_by(&:event_id)
-    @followed_host_ids = current_user.host_follows
-      .pluck(:host_user_id)
-      .to_set
+    host_follows = current_user.host_follows.to_a
+    @followed_host_ids     = host_follows.map(&:host_user_id).to_set
+    @host_follows_by_host_id = host_follows.index_by(&:host_user_id)
   end
 end

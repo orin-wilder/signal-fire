@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Linking,
+  Share,
   ActivityIndicator,
   Alert,
 } from "react-native";
@@ -29,11 +30,15 @@ const PLATFORM_LABELS: Record<string, string> = {
 
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  }) + " · " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return (
+    d.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    }) +
+    " · " +
+    d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+  );
 }
 
 function formatTimeRange(start: string, end: string): string {
@@ -47,6 +52,7 @@ export default function EventDetailScreen() {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkInLoading, setCheckInLoading] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -94,6 +100,54 @@ export default function EventDetailScreen() {
     } finally {
       setCheckInLoading(false);
     }
+  }
+
+  async function handleFollowToggle() {
+    if (!event) return;
+    if (!authenticated) {
+      Alert.alert(
+        "Sign in to follow",
+        "Create a free account to follow hosts and get weekly updates.",
+        [
+          { text: "Not now", style: "cancel" },
+          { text: "Sign in", onPress: () => router.push("/(auth)/sign-up") },
+        ]
+      );
+      return;
+    }
+    setFollowLoading(true);
+    try {
+      if (event.following) {
+        await api.delete(`/api/v1/host_follows/${event.host.host_follow_id}`);
+        posthog.capture("host_unfollowed", { host_slug: event.host.slug });
+        setEvent((e) => e && { ...e, following: false, host: { ...e.host, following: false, host_follow_id: null } });
+      } else {
+        const res = await api.post<{ id: number }>("/api/v1/host_follows", {
+          host_user_id: event.host.id,
+        });
+        posthog.capture("host_followed", { host_slug: event.host.slug });
+        setEvent((e) => e && { ...e, following: true, host: { ...e.host, following: true, host_follow_id: res.id } });
+      }
+    } catch {
+      Alert.alert("Something went wrong", "Please try again.");
+    } finally {
+      setFollowLoading(false);
+    }
+  }
+
+  async function saveToCalendar() {
+    if (!event?.calendar_url) return;
+    posthog.capture("event_calendar_saved", { event_id: event.id });
+    Linking.openURL(event.calendar_url);
+  }
+
+  async function shareEvent() {
+    if (!event?.share_url) return;
+    posthog.capture("event_shared", { event_id: event.id });
+    await Share.share({
+      message: `${event.title} — ${event.share_url}`,
+      url: event.share_url,
+    });
   }
 
   if (loading) {
@@ -151,34 +205,43 @@ export default function EventDetailScreen() {
         {/* Title & meta */}
         <Text style={styles.title}>{event.title}</Text>
         <Text style={styles.meta}>
-          {formatDateTime(event.next_occurrence)}
+          {event.recurrence_label ?? formatDateTime(event.next_occurrence)}
         </Text>
         <Text style={styles.meta}>
           {formatTimeRange(event.start_time, event.end_time)}
         </Text>
 
-        {/* Host — tap name to open HostPage */}
+        {/* Host row — name taps to HostPage + inline follow toggle */}
         <View style={styles.hostSection}>
-          <Text style={styles.sectionLabel}>ABOUT THE HOST</Text>
-          <TouchableOpacity
-            style={styles.hostRow}
-            onPress={() => {
-              if (event.host.slug) {
-                router.push(`/(app)/host/${event.host.slug}` as any);
-              }
-            }}
-            activeOpacity={event.host.slug ? 0.7 : 1}
-          >
-            <View style={styles.hostInfo}>
+          <Text style={styles.sectionLabel}>HOST</Text>
+          <View style={styles.hostRow}>
+            <TouchableOpacity
+              style={styles.hostInfo}
+              onPress={() => {
+                if (event.host.slug) {
+                  router.push(`/(app)/host/${event.host.slug}` as any);
+                }
+              }}
+              activeOpacity={event.host.slug ? 0.7 : 1}
+            >
               <Text style={styles.hostName}>{event.host.name}</Text>
               {event.host.blurb ? (
                 <Text style={styles.hostBlurb}>{event.host.blurb}</Text>
               ) : null}
-            </View>
-            {event.host.slug ? (
-              <Text style={styles.hostChevron}>›</Text>
-            ) : null}
-          </TouchableOpacity>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.followBtn, event.following && styles.followBtnActive]}
+              onPress={handleFollowToggle}
+              disabled={followLoading}
+              accessibilityLabel={event.following ? `Unfollow ${event.host.name}` : `Follow ${event.host.name}`}
+              accessibilityRole="button"
+            >
+              <Text style={[styles.followBtnText, event.following && styles.followBtnTextActive]}>
+                {event.following ? "Following" : "+ Follow"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Description */}
@@ -210,18 +273,38 @@ export default function EventDetailScreen() {
 
         {event.chat_url ? (
           <TouchableOpacity
-            style={[styles.chatButton, isCancelled && styles.chatButtonOnly]}
+            style={[styles.secondaryButton, isCancelled && { marginTop: 20 }]}
             onPress={() => {
               posthog.capture("chat_link_tapped", { event_id: event.id, platform: event.chat_platform });
               Linking.openURL(event.chat_url!);
             }}
             activeOpacity={0.85}
           >
-            <Text style={styles.chatButtonText}>
+            <Text style={styles.secondaryButtonText}>
               {isCancelled ? `Open the ${platformLabel} group` : `Join on ${platformLabel}`}
             </Text>
           </TouchableOpacity>
         ) : null}
+
+        {/* Save to calendar */}
+        {!isCancelled && (
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={saveToCalendar}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.secondaryButtonText}>Save to my calendar</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Share event */}
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={shareEvent}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.secondaryButtonText}>Share this event</Text>
+        </TouchableOpacity>
 
         {isCancelled && (
           <Text style={styles.chatNote}>
@@ -326,11 +409,25 @@ const styles = StyleSheet.create({
     color: Colors.stone,
     lineHeight: 20,
   },
-  hostChevron: {
-    fontFamily: FontFamily.sans,
-    fontSize: FontSize.xl,
-    color: Colors.muted,
-    alignSelf: "center",
+  followBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignSelf: "flex-start",
+  },
+  followBtnActive: {
+    backgroundColor: Colors.ink,
+    borderColor: Colors.ink,
+  },
+  followBtnText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.ink,
+  },
+  followBtnTextActive: {
+    color: Colors.white,
   },
   section: { marginTop: 20 },
   sectionLabel: {
@@ -346,7 +443,7 @@ const styles = StyleSheet.create({
     color: Colors.ink,
     lineHeight: 22,
   },
-  chatButton: {
+  secondaryButton: {
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 10,
@@ -355,10 +452,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     backgroundColor: Colors.white,
   },
-  chatButtonOnly: {
-    marginTop: 20,
-  },
-  chatButtonText: {
+  secondaryButtonText: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: FontSize.base,
     color: Colors.ink,
