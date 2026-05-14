@@ -26,14 +26,14 @@ describe("AppLayout", () => {
     const { UNSAFE_getAllByType } = render(<AppLayout />);
     const screens = UNSAFE_getAllByType(require("expo-router").Tabs.Screen);
     const names = screens.map((s: any) => s.props.name);
-    expect(names).toEqual(["index", "scan", "signals", "me", "totem", "host"]);
+    expect(names).toEqual(["index", "scan", "me", "signals", "totem", "host"]);
   });
 
   it("tab screens have correct titles", () => {
     const { UNSAFE_getAllByType } = render(<AppLayout />);
     const screens = UNSAFE_getAllByType(require("expo-router").Tabs.Screen);
     const titles = screens.map((s: any) => s.props.options?.title);
-    expect(titles).toEqual(["Home", "Scan", "Signals", "Me", undefined, undefined]);
+    expect(titles).toEqual(["Home", "Scan", "Profile", undefined, undefined, undefined]);
   });
 
   it("totem screen is hidden from the tab bar via href: null", () => {
@@ -67,19 +67,19 @@ describe("AppLayout", () => {
     expect(getByText("⬛")).toBeTruthy();
   });
 
-  it("TabIcon for signals renders ◎", () => {
+  it("signals screen is hidden from the tab bar via href: null", () => {
     const { UNSAFE_getAllByType } = render(<AppLayout />);
     const screens = UNSAFE_getAllByType(require("expo-router").Tabs.Screen);
-    const signalsIcon = screens[2].props.options.tabBarIcon({ focused: true });
-    const { getByText } = render(signalsIcon);
-    expect(getByText("◎")).toBeTruthy();
+    const signalsScreen = screens.find((s: any) => s.props.name === "signals");
+    expect(signalsScreen?.props.options?.href).toBeNull();
   });
 
-  it("TabIcon for me renders ◉", () => {
+  it("TabIcon for profile (me) renders ◉", () => {
     const { UNSAFE_getAllByType } = render(<AppLayout />);
     const screens = UNSAFE_getAllByType(require("expo-router").Tabs.Screen);
-    const meIcon = screens[3].props.options.tabBarIcon({ focused: false });
-    const { getByText } = render(meIcon);
+    const profileScreen = screens.find((s: any) => s.props.name === "me");
+    const icon = profileScreen?.props.options.tabBarIcon({ focused: false });
+    const { getByText } = render(icon);
     expect(getByText("◉")).toBeTruthy();
   });
 });

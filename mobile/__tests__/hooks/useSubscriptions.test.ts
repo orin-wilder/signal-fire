@@ -70,7 +70,7 @@ describe("load", () => {
 });
 
 describe("unfollow", () => {
-  it("DELETEs by totem_id and removes from state", async () => {
+  it("DELETEs by record id and removes from state", async () => {
     mockApi.get.mockResolvedValueOnce({
       totem_favorites: [follow1, follow2],
       host_follows: [],
@@ -81,15 +81,15 @@ describe("unfollow", () => {
       await result.current.load();
     });
     await act(async () => {
-      await result.current.unfollow(follow1.totem_id);
+      await result.current.unfollow(follow1.id);
     });
-    expect(mockApi.delete).toHaveBeenCalledWith("/api/v1/totem_favorites/10");
+    expect(mockApi.delete).toHaveBeenCalledWith("/api/v1/totem_favorites/1");
     expect(result.current.follows).toEqual([follow2]);
   });
 });
 
 describe("unfollowHost", () => {
-  it("DELETEs by host_user_id and removes from state", async () => {
+  it("DELETEs by record id and removes from state", async () => {
     mockApi.get.mockResolvedValueOnce({
       totem_favorites: [],
       host_follows: [sub1],
@@ -100,9 +100,9 @@ describe("unfollowHost", () => {
       await result.current.load();
     });
     await act(async () => {
-      await result.current.unfollowHost(sub1.host_user_id);
+      await result.current.unfollowHost(sub1.id);
     });
-    expect(mockApi.delete).toHaveBeenCalledWith("/api/v1/host_follows/100");
+    expect(mockApi.delete).toHaveBeenCalledWith("/api/v1/host_follows/1");
     expect(result.current.hostFollows).toEqual([]);
   });
 });

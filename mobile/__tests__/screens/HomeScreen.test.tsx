@@ -1,30 +1,47 @@
 jest.mock("../../services/api", () => ({
-  api: {
-    get: jest.fn(),
-  },
+  api: { get: jest.fn() },
+}));
+
+jest.mock("expo-router", () => ({
+  router: { push: jest.fn() },
 }));
 
 import React from "react";
 import { ActivityIndicator } from "react-native";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react-native";
-import { router } from "expo-router";
+import { render, screen, waitFor } from "@testing-library/react-native";
 import { api } from "../../services/api";
 import HomeScreen from "../../app/(app)/index";
+import type { HomeSections } from "../../hooks/useHome";
 
 const mockApi = api as jest.Mocked<typeof api>;
-const mockRouter = router as jest.Mocked<typeof router>;
 
-const board = {
-  totem_slug: "waterfront-north",
-  totem_name: "St. Pete Waterfront North",
-  active_event: null,
-  next_event: {
-    slug: "ecstatic-dance",
-    title: "Sunday Mass — Ecstatic Dance",
-    next_occurrence: new Date(Date.now() + 86400000).toISOString(),
-    recurrence_type: "weekly",
-  },
-};
+const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString();
+
+function makeResponse(overrides: Partial<HomeSections> = {}): { sections: HomeSections } {
+  return {
+    sections: {
+      yours: { visible: false },
+      st_pete: {
+        visible: true,
+        totems: [
+          {
+            id: 1,
+            name: "Williams Park Lawn",
+            slug: "williams-park-lawn",
+            neighborhood: "Old Northeast",
+            character_description: "Bodies in the air every Sunday.",
+            active_now: false,
+            favorited: false,
+            totem_favorite_id: null,
+            next_event: { id: 10, title: "Sunday Jam", start_time: nextWeek, recurrence_label: "Weekly on Sundays" },
+          },
+        ],
+      },
+      nearby: { visible: false, reason: "no_adjacent_cities" },
+      ...overrides,
+    },
+  };
+}
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -38,81 +55,101 @@ describe("HomeScreen loading", () => {
   });
 });
 
-describe("HomeScreen empty state", () => {
-  it("shows 'No totems yet' when boards list is empty", async () => {
-    mockApi.get.mockResolvedValueOnce({ boards: [] });
+describe("HomeScreen St. Pete section", () => {
+  it("renders totem names from st_pete section", async () => {
+    mockApi.get.mockResolvedValueOnce(makeResponse());
     render(<HomeScreen />);
     await waitFor(() => {
-      expect(screen.getByText("No totems yet")).toBeTruthy();
+      expect(screen.getByText("WILLIAMS PARK LAWN · OLD NORTHEAST")).toBeTruthy();
     });
   });
 
-  it("shows exactly one scan button in empty state", async () => {
-    mockApi.get.mockResolvedValueOnce({ boards: [] });
+  it("renders ST. PETE section label", async () => {
+    mockApi.get.mockResolvedValueOnce(makeResponse());
     render(<HomeScreen />);
     await waitFor(() => {
-      const scanButtons = screen.getAllByText("Scan a totem");
-      expect(scanButtons).toHaveLength(1);
+      expect(screen.getByText("ST. PETE")).toBeTruthy();
     });
   });
 
-  it("scan button navigates to scan screen", async () => {
-    mockApi.get.mockResolvedValueOnce({ boards: [] });
+  it("shows next event title", async () => {
+    mockApi.get.mockResolvedValueOnce(makeResponse());
     render(<HomeScreen />);
-    await waitFor(() => screen.getByText("Scan a totem"));
-    fireEvent.press(screen.getByText("Scan a totem"));
-    expect(mockRouter.push).toHaveBeenCalledWith("/(app)/scan");
+    await waitFor(() => {
+      expect(screen.getByText("Sunday Jam")).toBeTruthy();
+    });
+  });
+
+  it("shows LIVE NOW chip for active-now totem", async () => {
+    const res = makeResponse();
+    res.sections.st_pete.totems[0].active_now = true;
+    mockApi.get.mockResolvedValueOnce(res);
+    render(<HomeScreen />);
+    await waitFor(() => {
+      expect(screen.getByText("● LIVE NOW")).toBeTruthy();
+    });
   });
 });
 
-describe("HomeScreen with boards", () => {
-  it("shows the board totem name", async () => {
-    mockApi.get.mockResolvedValueOnce({ boards: [board] });
-    render(<HomeScreen />);
-    await waitFor(() => {
-      expect(screen.getByText("ST. PETE WATERFRONT NORTH")).toBeTruthy();
-    });
-  });
-
-  it("shows following count", async () => {
-    mockApi.get.mockResolvedValueOnce({ boards: [board] });
-    render(<HomeScreen />);
-    await waitFor(() => {
-      expect(screen.getByText("FOLLOWING · 1 TOTEM")).toBeTruthy();
-    });
-  });
-
-  it("shows exactly one scan button with boards present", async () => {
-    mockApi.get.mockResolvedValueOnce({ boards: [board] });
-    render(<HomeScreen />);
-    await waitFor(() => {
-      const scanButtons = screen.getAllByText("Scan a totem");
-      expect(scanButtons).toHaveLength(1);
-    });
-  });
-
-  it("navigates to totem board when card is pressed", async () => {
-    mockApi.get.mockResolvedValueOnce({ boards: [board] });
-    render(<HomeScreen />);
-    await waitFor(() => screen.getByText("ST. PETE WATERFRONT NORTH"));
-    fireEvent.press(screen.getByText("ST. PETE WATERFRONT NORTH"));
-    expect(mockRouter.push).toHaveBeenCalledWith("/totem/waterfront-north");
-  });
-
-  it("shows HAPPENING NOW chip for active events", async () => {
-    const activeBoard = {
-      ...board,
-      active_event: {
-        slug: "ecstatic-dance-now",
-        title: "Ecstatic Dance",
-        window_state: "happening_now",
-        start_time: new Date(Date.now() - 20 * 60000).toISOString(),
+describe("HomeScreen Yours section", () => {
+  it("renders YOURS section when user has favorites", async () => {
+    const res = makeResponse({
+      yours: {
+        visible: true,
+        items: [
+          {
+            type: "totem_favorite",
+            totem: {
+              id: 2,
+              name: "North Shore Courts",
+              slug: "north-shore-courts",
+              neighborhood: "North Shore",
+              character_description: null,
+              favorited: true,
+              totem_favorite_id: 99,
+            },
+            next_event: { id: 20, title: "Sand Volleyball", start_time: nextWeek, recurrence_label: null },
+          },
+        ],
       },
-    };
-    mockApi.get.mockResolvedValueOnce({ boards: [activeBoard] });
+    });
+    mockApi.get.mockResolvedValueOnce(res);
     render(<HomeScreen />);
     await waitFor(() => {
-      expect(screen.getByText("HAPPENING NOW")).toBeTruthy();
+      expect(screen.getByText("YOURS")).toBeTruthy();
+      expect(screen.getByText("NORTH SHORE COURTS · NORTH SHORE")).toBeTruthy();
     });
+  });
+
+  it("renders host follow card in YOURS section", async () => {
+    const res = makeResponse({
+      yours: {
+        visible: true,
+        items: [
+          {
+            type: "host_follow",
+            host: {
+              display_name: "Amara Chen",
+              slug: "amara-chen",
+              following: true,
+              host_follow_id: 7,
+            },
+            next_event: { id: 10, title: "Sunday Jam", start_time: nextWeek, recurrence_label: null },
+          },
+        ],
+      },
+    });
+    mockApi.get.mockResolvedValueOnce(res);
+    render(<HomeScreen />);
+    await waitFor(() => {
+      expect(screen.getByText("FOLLOWING · AMARA CHEN")).toBeTruthy();
+    });
+  });
+
+  it("does not render YOURS section when yours.visible is false", async () => {
+    mockApi.get.mockResolvedValueOnce(makeResponse({ yours: { visible: false } }));
+    render(<HomeScreen />);
+    await waitFor(() => screen.getByText("ST. PETE"));
+    expect(screen.queryByText("YOURS")).toBeNull();
   });
 });

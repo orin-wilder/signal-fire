@@ -5,6 +5,10 @@ Rails.application.routes.draw do
     mount LetterOpenerWeb::Engine, at: "/letter_opener"
   end
 
+  # Public web — City Board
+  get '/stpete', to: 'cities#show', defaults: { city_slug: 'stpete' }, as: :city_board
+  get '/host-with-us', to: 'pages#host_inquiry', as: :host_inquiry
+
   # Public web — Totem Board + Host Page
   get  "/h/:host_slug",                               to: "hosts#show",                        as: :host_page
   get  "/about",                                      to: "pages#about",                       as: :about
@@ -29,7 +33,7 @@ Rails.application.routes.draw do
   # Google OAuth (GET /auth/google_oauth2 is handled by OmniAuth middleware)
   get "/auth/google_oauth2/callback", to: "auth/sessions#google_callback"
 
-  root to: redirect("/host/login")
+  root to: redirect("/stpete")
   get "/admin", to: redirect("/admin/totems"), as: :admin_root
 
   # Host dashboard (Chunk 4)

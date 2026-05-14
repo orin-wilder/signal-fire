@@ -1,11 +1,19 @@
 import { Tabs } from "expo-router";
-import { Text, StyleSheet } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 import { Colors } from "../../constants/colors";
 import { FontFamily, FontSize } from "../../constants/typography";
 
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   return (
     <Text style={[styles.icon, focused && styles.iconFocused]}>{label}</Text>
+  );
+}
+
+function ScanIcon({ focused }: { focused: boolean }) {
+  return (
+    <View style={[styles.scanIconWrap, focused && styles.scanIconWrapFocused]}>
+      <Text style={styles.scanIconText}>⬛</Text>
+    </View>
   );
 }
 
@@ -38,31 +46,21 @@ export default function AppLayout() {
         name="scan"
         options={{
           title: "Scan",
-          tabBarIcon: ({ focused }) => <TabIcon label="⬛" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="signals"
-        options={{
-          title: "Signals",
-          tabBarIcon: ({ focused }) => <TabIcon label="◎" focused={focused} />,
+          tabBarIcon: ({ focused }) => <ScanIcon focused={focused} />,
+          tabBarActiveTintColor: Colors.ember,
         }}
       />
       <Tabs.Screen
         name="me"
         options={{
-          title: "Me",
+          title: "Profile",
           tabBarIcon: ({ focused }) => <TabIcon label="◉" focused={focused} />,
         }}
       />
-      <Tabs.Screen
-        name="totem"
-        options={{ href: null }}
-      />
-      <Tabs.Screen
-        name="host"
-        options={{ href: null }}
-      />
+      {/* Hidden screens — not shown in tab bar */}
+      <Tabs.Screen name="signals" options={{ href: null }} />
+      <Tabs.Screen name="totem" options={{ href: null }} />
+      <Tabs.Screen name="host" options={{ href: null }} />
     </Tabs>
   );
 }
@@ -74,5 +72,21 @@ const styles = StyleSheet.create({
   },
   iconFocused: {
     color: Colors.ink,
+  },
+  scanIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: Colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 2,
+  },
+  scanIconWrapFocused: {
+    backgroundColor: Colors.ember,
+  },
+  scanIconText: {
+    fontSize: 16,
+    color: Colors.white,
   },
 });

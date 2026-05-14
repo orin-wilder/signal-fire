@@ -115,7 +115,7 @@ describe("SignalsScreen", () => {
     await act(async () => {
       fireEvent.press(screen.getByText("Unfollow"));
     });
-    expect(unfollow).toHaveBeenCalledWith(follow.totem_id);
+    expect(unfollow).toHaveBeenCalledWith(follow.id);
   });
 
   it("calls unfollowHost when Unfollow is pressed on a host", async () => {
@@ -129,7 +129,7 @@ describe("SignalsScreen", () => {
     await act(async () => {
       fireEvent.press(screen.getByText("Unfollow"));
     });
-    expect(unfollowHost).toHaveBeenCalledWith(hostFollow.host_user_id);
+    expect(unfollowHost).toHaveBeenCalledWith(hostFollow.id);
   });
 
   it("calls updateFollow when new event switch is toggled", async () => {

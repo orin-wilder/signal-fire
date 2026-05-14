@@ -1,0 +1,125 @@
+<% content_for :title, "Signal Fire — St. Petersburg" %>
+
+<div class="min-h-screen bg-[#f2f0d9]">
+  <%# Desktop nav %>
+  <nav class="hidden md:flex items-center justify-between px-8 py-5 border-b border-[#d6d0c4]">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-[#e24820]"></span>
+      <span class="font-semibold text-[#1a1a12] text-base">Signal Fire</span>
+    </div>
+    <div class="flex items-center gap-8">
+      <%= link_to "How it works", about_path, class: "text-sm text-[#867a60] hover:text-[#1a1a12] transition-colors" %>
+      <%= link_to "Host with us", host_inquiry_path, class: "text-sm text-[#867a60] hover:text-[#1a1a12] transition-colors" %>
+      <%= link_to "About", about_path, class: "text-sm text-[#867a60] hover:text-[#1a1a12] transition-colors" %>
+      <button data-controller="app-nudge" data-action="click->app-nudge#open"
+              class="bg-[#e24820] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#c83e1a] transition-colors">
+        Get the app
+      </button>
+    </div>
+  </nav>
+
+  <%# Mobile nav %>
+  <nav class="md:hidden flex items-center justify-between px-4 py-4 border-b border-[#d6d0c4]">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-[#e24820]"></span>
+      <span class="font-semibold text-[#1a1a12] text-sm">Signal Fire</span>
+    </div>
+    <button class="text-[#867a60] p-1" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </nav>
+
+  <main class="px-4 md:px-8 pb-32 max-w-5xl mx-auto">
+    <%# Hero %>
+    <header class="pt-10 pb-8 md:pt-14 md:pb-10">
+      <p class="font-mono text-[10px] tracking-widest text-[#867a60] uppercase mb-3">
+        St. Petersburg, Florida · Updated this morning
+      </p>
+      <h1 class="font-serif text-4xl md:text-5xl text-[#1a1a12] leading-tight mb-3">
+        The fire is lit, your neighbors<br>
+        are here, and <em>you are invited.</em>
+      </h1>
+      <p class="text-sm text-[#867a60]">
+        St. Pete's living rooms — <%= @totems.size %> <%= "place".pluralize(@totems.size) %> where strangers are welcome this week.
+      </p>
+    </header>
+
+    <%# Totem grid %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <% @totems.each do |totem| %>
+        <% active_event  = city_board_active_event(totem) %>
+        <% week_events   = city_board_week_events(totem) %>
+        <% next_event    = week_events.first %>
+        <% extra_count   = [week_events.size - 1, 0].max %>
+
+        <%= link_to totem_board_path(totem.slug),
+              class: "block rounded-xl border p-5 transition-colors #{active_event ? 'bg-[#fdf6f0] border-[#e8d5c4]' : 'bg-white/80 border-[#d6d0c4] hover:bg-white'}",
+              data: { analytics: 'totem_card_clicked', totem_slug: totem.slug } do %>
+
+          <%# Eyebrow %>
+          <p class="font-mono text-[10px] tracking-widest text-[#867a60] uppercase mb-1">
+            <%= totem.name %><% if totem.neighborhood.present? %> · <%= totem.neighborhood %><% end %>
+          </p>
+
+          <%# Title %>
+          <h2 class="font-serif text-xl text-[#1a1a12] mb-1"><%= totem.name %>.</h2>
+
+          <%# Character description %>
+          <% if totem.character_description.present? %>
+            <p class="text-sm text-[#867a60] mb-3 leading-relaxed"><%= totem.character_description %></p>
+          <% end %>
+
+          <%# Active now %>
+          <% if active_event %>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="flex items-center gap-1.5 bg-[#e24820] text-white font-mono text-[10px] tracking-widest uppercase px-2 py-0.5 rounded">
+                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                Live now
+              </span>
+              <span class="text-sm font-medium text-[#1a1a12]"><%= active_event.title %></span>
+            </div>
+            <p class="text-sm text-[#867a60]">
+              started <%= active_event.start_time.strftime("%-I:%M %p") %>
+            </p>
+          <% elsif next_event %>
+            <%# Next upcoming event %>
+            <p class="text-sm text-[#1a1a12]">
+              <span class="text-[#867a60]"><%= city_board_event_day_label(next_event) %></span>
+              · <%= next_event.title %>
+              · <%= next_event.next_occurrence.strftime("%-I:%M %p") %>
+            </p>
+            <% if next_event.recurring? %>
+              <p class="text-xs text-[#867a60] mt-0.5"><%= next_event.recurrence_label %></p>
+            <% end %>
+          <% else %>
+            <p class="text-sm text-[#867a60] italic">Quiet this week — check back soon.</p>
+          <% end %>
+
+          <%# Extra events count %>
+          <% if extra_count > 0 %>
+            <p class="text-xs text-[#867a60] mt-2">+ <%= extra_count %> more this week</p>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  </main>
+
+  <%# Persistent app footer %>
+  <div class="fixed bottom-0 inset-x-0 bg-[#1a1a12] text-[#f2f0d9] px-4 py-3 flex items-center justify-between gap-3"
+       data-controller="app-nudge">
+    <p class="text-sm flex-1 leading-tight">
+      Get the app to follow these places — one weekly digest of what's happening, no spam.
+    </p>
+    <button data-action="click->app-nudge#open"
+            class="bg-[#e24820] text-white font-medium rounded px-4 py-2 text-sm shrink-0">
+      Get the app
+    </button>
+  </div>
+
+  <%= render "shared/app_download_nudge" %>
+</div>
