@@ -1,0 +1,83 @@
+<% content_for :title, "Your profile — Signal Fire" %>
+
+<div class="min-h-screen bg-[#f2f0d9]">
+  <nav class="flex items-center justify-between px-6 py-4 border-b border-[#d6d0c4]">
+    <a href="/" class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-[#e24820]"></span>
+      <span class="font-semibold text-[#1a1a12] text-sm">Signal Fire</span>
+    </a>
+    <div class="flex items-center gap-4 text-sm">
+      <%= link_to "St. Pete", city_board_path, class: "text-[#867a60] hover:text-[#1a1a12] transition-colors" %>
+      <%= link_to "Sign out", sign_out_path, data: { turbo_method: :delete },
+            class: "text-[#867a60] hover:text-[#1a1a12] transition-colors" %>
+    </div>
+  </nav>
+
+  <div class="max-w-lg mx-auto px-6 py-10">
+    <p class="font-mono text-[10px] uppercase tracking-widest text-[#867a60] mb-1">Account</p>
+    <h1 class="font-serif text-3xl text-[#1a1a12] mb-8">Your profile.</h1>
+
+    <%# Favorite places %>
+    <section class="mb-8">
+      <h2 class="font-mono text-[10px] uppercase tracking-widest text-[#867a60] mb-3">Favorite places</h2>
+      <% if @totem_favorites.any? %>
+        <div class="border border-[#d6d0c4] rounded-xl overflow-hidden divide-y divide-[#d6d0c4] bg-white/60">
+          <% @totem_favorites.each do |fav| %>
+            <div class="flex items-center justify-between px-4 py-3.5">
+              <div>
+                <span class="text-sm text-[#1a1a12]"><%= fav.totem.name %></span>
+                <% if fav.totem.neighborhood.present? %>
+                  <span class="text-xs text-[#867a60] ml-2"><%= fav.totem.neighborhood %></span>
+                <% end %>
+              </div>
+              <%= button_to "Remove", totem_favorite_path(fav), method: :delete,
+                    data: { turbo_method: :delete },
+                    class: "text-xs text-[#867a60] hover:text-[#c83e1a] transition-colors cursor-pointer bg-transparent border-none p-0" %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-sm text-[#867a60]">
+          You haven't favorited any places yet.
+          <%= link_to "Explore St. Pete →", city_board_path, class: "text-[#1a1a12] underline underline-offset-2 hover:text-[#e24820] transition-colors" %>
+        </p>
+      <% end %>
+    </section>
+
+    <%# Hosts you follow %>
+    <section class="mb-8">
+      <h2 class="font-mono text-[10px] uppercase tracking-widest text-[#867a60] mb-3">Hosts you follow</h2>
+      <% if @host_follows.any? %>
+        <div class="border border-[#d6d0c4] rounded-xl overflow-hidden divide-y divide-[#d6d0c4] bg-white/60">
+          <% @host_follows.each do |follow| %>
+            <div class="flex items-center justify-between px-4 py-3.5">
+              <span class="text-sm text-[#1a1a12]"><%= follow.host_user.host_profile&.display_name || follow.host_user.name %></span>
+              <%= button_to "Unfollow", host_follow_path(follow), method: :delete,
+                    data: { turbo_method: :delete },
+                    class: "text-xs text-[#867a60] hover:text-[#c83e1a] transition-colors cursor-pointer bg-transparent border-none p-0" %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-sm text-[#867a60]">You're not following any hosts yet.</p>
+      <% end %>
+    </section>
+
+    <%# Hosted events — only for hosts %>
+    <% if current_user.is_host? %>
+      <section class="mb-8">
+        <h2 class="font-mono text-[10px] uppercase tracking-widest text-[#867a60] mb-3">Your events</h2>
+        <div class="border border-[#d6d0c4] rounded-xl overflow-hidden bg-white/60">
+          <a href="<%= host_sso_url %>"
+             class="flex items-center justify-between px-4 py-3.5 hover:bg-white/80 transition-colors">
+            <span class="text-sm text-[#1a1a12]">Manage your hosted events</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" class="w-4 h-4 text-[#867a60]" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          </a>
+        </div>
+      </section>
+    <% end %>
+  </div>
+</div>

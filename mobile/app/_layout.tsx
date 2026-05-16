@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Linking, Platform } from "react-native";
 import { Stack, router } from "expo-router";
+import { posthog } from "../services/analytics";
 import { useFonts } from "expo-font";
 import {
   InstrumentSans_400Regular,
@@ -44,6 +45,7 @@ function handleNotificationData(data: Record<string, unknown> | undefined) {
 
   switch (type) {
     case "weekly_digest":
+      posthog.capture("weekly_digest_opened");
       router.push("/(app)/");
       break;
     case "first_stranger":

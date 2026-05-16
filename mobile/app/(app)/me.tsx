@@ -133,6 +133,16 @@ export default function MeScreen() {
           </View>
         </View>
 
+        {/* Host events row */}
+        {user.is_host && user.host_sso_url && (
+          <View style={[styles.menuSection, { marginBottom: 16 }]}>
+            <MenuRow
+              label="Manage your hosted events"
+              onPress={() => Linking.openURL(user.host_sso_url!)}
+            />
+          </View>
+        )}
+
         {/* Menu */}
         <View style={styles.menuSection}>
           <MenuRow

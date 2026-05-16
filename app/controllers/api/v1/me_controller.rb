@@ -81,7 +81,7 @@ class Api::V1::MeController < Api::V1::ApplicationController
   private
 
   def user_json(user)
-    {
+    json = {
       id: user.id,
       name: user.name,
       email: user.email,
@@ -91,5 +91,11 @@ class Api::V1::MeController < Api::V1::ApplicationController
       push_token: user.push_token,
       notification_prefs: user.notification_prefs
     }
+    if user.is_host?
+      token = JwtService.encode(user_id: user.id, exp: 5.minutes.from_now.to_i)
+      base  = ENV.fetch("HOST_DASHBOARD_URL", "https://host.signalfire.live")
+      json[:host_sso_url] = "#{base}/host/dashboard?sso_token=#{token}"
+    end
+    json
   end
 end

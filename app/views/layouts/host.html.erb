@@ -15,79 +15,73 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="bg-paper text-ink" data-controller="sidebar">
-    <%# ── Mobile top bar ── %>
-    <div class="md:hidden fixed top-0 inset-x-0 z-50 bg-ink h-14 flex items-center justify-between px-4">
-      <%= link_to host_dashboard_path, class: "flex items-baseline gap-2" do %>
-        <span class="font-serif text-lg text-white">Signal Fire</span>
-        <span class="font-mono text-[10px] text-stone/50 uppercase tracking-widest">Host</span>
-      <% end %>
-      <button data-action="click->sidebar#toggle" aria-label="Toggle navigation" class="text-white/80 hover:text-white p-1 transition">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6" data-sidebar-target="menuIcon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-        </svg>
-      </button>
-    </div>
+  <body class="bg-paper text-ink">
+    <header class="border-b border-stone/20" data-controller="sidebar">
+      <div class="px-6 py-4 flex items-center justify-between">
+        <%= link_to host_dashboard_path, class: "flex items-center gap-2.5" do %>
+          <span class="w-2 h-2 rounded-full bg-ember flex-shrink-0"></span>
+          <span class="font-serif text-lg text-ink">Signal Fire</span>
+          <span class="hidden sm:inline font-mono text-[10px] text-stone/50 uppercase tracking-widest">Host Dashboard</span>
+        <% end %>
 
-    <%# ── Mobile drawer ── %>
-    <div class="md:hidden fixed inset-0 z-40 bg-ink pt-14 hidden flex-col"
-         data-sidebar-target="drawer">
-      <nav class="px-3 py-4 space-y-0.5">
+        <%# Desktop nav %>
+        <nav class="hidden md:flex items-center gap-6">
+          <%= link_to "Dashboard", host_dashboard_path,
+                class: "text-sm transition #{request.path == host_dashboard_path ? 'font-semibold text-ink' : 'text-stone hover:text-ink'}" %>
+          <%= link_to "Events", host_events_path,
+                class: "text-sm transition #{request.path.start_with?('/host/events') ? 'font-semibold text-ink' : 'text-stone hover:text-ink'}" %>
+          <%= link_to "Insights", host_events_path,
+                class: "text-sm transition #{request.path.start_with?('/host/insights') ? 'font-semibold text-ink' : 'text-stone hover:text-ink'}" %>
+          <%= link_to "Totems", host_totems_path,
+                class: "text-sm transition #{request.path.start_with?('/host/totems') ? 'font-semibold text-ink' : 'text-stone hover:text-ink'}" %>
+          <%= link_to "Settings", host_profile_path,
+                class: "text-sm transition #{request.path.start_with?('/host/profile') ? 'font-semibold text-ink' : 'text-stone hover:text-ink'}" %>
+        </nav>
+
+        <%# Mobile hamburger %>
+        <button data-action="click->sidebar#toggle" class="md:hidden text-stone p-1" aria-label="Open menu">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <%# Mobile dropdown menu %>
+      <div data-sidebar-target="drawer" class="hidden md:hidden border-t border-stone/20 px-6 py-5 flex flex-col gap-5">
         <%= link_to "Dashboard", host_dashboard_path,
-              class: "block px-3 py-2.5 rounded-lg text-sm font-medium transition #{request.path == host_dashboard_path ? 'text-white bg-white/10' : 'text-stone/70 hover:text-white hover:bg-white/5'}",
+              class: "text-sm #{request.path == host_dashboard_path ? 'font-semibold text-ink' : 'text-stone hover:text-ink'}",
               data: { action: "click->sidebar#close" } %>
         <%= link_to "Events", host_events_path,
-              class: "block px-3 py-2.5 rounded-lg text-sm font-medium transition #{request.path.start_with?('/host/events') ? 'text-white bg-white/10' : 'text-stone/70 hover:text-white hover:bg-white/5'}",
+              class: "text-sm #{request.path.start_with?('/host/events') ? 'font-semibold text-ink' : 'text-stone hover:text-ink'}",
+              data: { action: "click->sidebar#close" } %>
+        <%= link_to "Insights", host_events_path,
+              class: "text-sm #{request.path.start_with?('/host/insights') ? 'font-semibold text-ink' : 'text-stone hover:text-ink'}",
               data: { action: "click->sidebar#close" } %>
         <%= link_to "Totems", host_totems_path,
-              class: "block px-3 py-2.5 rounded-lg text-sm font-medium transition #{request.path.start_with?('/host/totems') ? 'text-white bg-white/10' : 'text-stone/70 hover:text-white hover:bg-white/5'}",
+              class: "text-sm #{request.path.start_with?('/host/totems') ? 'font-semibold text-ink' : 'text-stone hover:text-ink'}",
               data: { action: "click->sidebar#close" } %>
         <%= link_to "Settings", host_profile_path,
-              class: "block px-3 py-2.5 rounded-lg text-sm font-medium transition #{request.path.start_with?('/host/profile') ? 'text-white bg-white/10' : 'text-stone/70 hover:text-white hover:bg-white/5'}",
+              class: "text-sm #{request.path.start_with?('/host/profile') ? 'font-semibold text-ink' : 'text-stone hover:text-ink'}",
               data: { action: "click->sidebar#close" } %>
-      </nav>
-    </div>
+      </div>
+    </header>
 
-    <div class="flex min-h-screen">
-      <%# ── Desktop sidebar ── %>
-      <aside class="hidden md:flex flex-col w-52 bg-ink fixed inset-y-0 left-0 z-30">
-        <div class="px-5 pt-7 pb-5 border-b border-white/10">
-          <%= link_to host_dashboard_path, class: "block" do %>
-            <p class="font-serif text-xl text-white">Signal Fire</p>
-            <p class="font-mono text-[10px] text-stone/40 uppercase tracking-widest mt-0.5">Host</p>
-          <% end %>
-        </div>
+    <% if flash[:notice] %>
+      <div class="bg-glen text-ink text-sm font-medium px-6 py-3" role="alert">
+        <%= flash[:notice] %>
+      </div>
+    <% end %>
+    <% if flash[:alert] %>
+      <div class="bg-ember text-white text-sm font-medium px-6 py-3" role="alert">
+        <%= flash[:alert] %>
+      </div>
+    <% end %>
 
-        <nav class="flex-1 px-3 py-4 space-y-0.5">
-          <%= link_to "Dashboard", host_dashboard_path,
-                class: "block px-3 py-2 rounded-lg text-sm transition #{request.path == host_dashboard_path ? 'text-white bg-white/10 font-medium' : 'text-stone/60 hover:text-white hover:bg-white/5'}" %>
-          <%= link_to "Events", host_events_path,
-                class: "block px-3 py-2 rounded-lg text-sm transition #{request.path.start_with?('/host/events') ? 'text-white bg-white/10 font-medium' : 'text-stone/60 hover:text-white hover:bg-white/5'}" %>
-          <%= link_to "Totems", host_totems_path,
-                class: "block px-3 py-2 rounded-lg text-sm transition #{request.path.start_with?('/host/totems') ? 'text-white bg-white/10 font-medium' : 'text-stone/60 hover:text-white hover:bg-white/5'}" %>
-          <%= link_to "Settings", host_profile_path,
-                class: "block px-3 py-2 rounded-lg text-sm transition #{request.path.start_with?('/host/profile') ? 'text-white bg-white/10 font-medium' : 'text-stone/60 hover:text-white hover:bg-white/5'}" %>
-        </nav>
-      </aside>
-
-      <%# ── Main content ── %>
-      <main class="flex-1 md:ml-52 pt-14 md:pt-0 min-h-screen flex flex-col">
-        <%# Flash messages %>
-        <% if flash[:notice] %>
-          <div class="bg-glen text-ink text-sm font-medium px-6 py-3" role="alert">
-            <%= flash[:notice] %>
-          </div>
-        <% end %>
-        <% if flash[:alert] %>
-          <div class="bg-ember text-white text-sm font-medium px-6 py-3" role="alert">
-            <%= flash[:alert] %>
-          </div>
-        <% end %>
-
-        <div class="px-5 md:px-8 py-8 flex-1">
-          <%= yield %>
-        </div>
-      </main>
-    </div>
+    <main class="px-5 md:px-8 py-8">
+      <%= yield %>
+    </main>
   </body>
 </html>

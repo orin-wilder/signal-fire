@@ -5,6 +5,15 @@
 # Helpers
 # ---------------------------------------------------------------------------
 
+def seed_check_ins(event:, users:, offsets:)
+  offsets.each_with_index do |offset, i|
+    user = users[i % users.size]
+    CheckIn.find_or_create_by!(user: user, event: event) do |ci|
+      ci.checked_in_at = event.start_time + offset.minutes
+    end
+  end
+end
+
 def make_host(email:, name:, display_name:, blurb:, host_story: nil)
   user = User.find_or_create_by!(email: email) do |u|
     u.name = name
@@ -97,6 +106,24 @@ User.find_or_create_by!(email: "nofollows@example.com") do |u|
   u.name = "Casey Nofollows"
   u.auth_method = "email"
   u.password_digest = BCrypt::Password.create("password")
+end
+
+# Attendees used for check-in / Insights seeds (first names surfaced on Insights page)
+attendees = [
+  [ "ana@example.com",    "Ana Torres"     ],
+  [ "jordan@example.com", "Jordan Lee"     ],
+  [ "morgan@example.com", "Morgan Kim"     ],
+  [ "taylor@example.com", "Taylor Brooks"  ],
+  [ "river@example.com",  "River Chen"     ],
+  [ "quinn@example.com",  "Quinn Reyes"    ],
+  [ "dana@example.com",   "Dana Okafor"    ],
+  [ "lee@example.com",    "Lee Nakamura"   ],
+].map do |email, name|
+  User.find_or_create_by!(email: email) do |u|
+    u.name            = name
+    u.auth_method     = "email"
+    u.password_digest = BCrypt::Password.create("password")
+  end
 end
 
 # ---------------------------------------------------------------------------
@@ -392,6 +419,133 @@ end
 AnonymousCheckInCount.find_or_create_by!(event: active_event) { |c| c.count = 12 }
 
 # ---------------------------------------------------------------------------
+# Past Events + Check-ins (for Insights page development)
+#
+# Three events with realistic check-in spreads across 15-min windows.
+# Two events intentionally left empty to test the zero-state.
+# ---------------------------------------------------------------------------
+
+# ── 1. Sunday Mass — big turnout, good chart shape ──────────────────────────
+sunday_mass_past = Event.find_or_create_by!(slug: "waterfront-north-sunday-mass-past") do |e|
+  e.totem           = waterfront
+  e.host_user       = maria
+  e.title           = "Sunday Mass — Ecstatic Dance"
+  e.recurrence_rule = nil
+  e.start_time      = 2.weeks.ago.change(hour: 9, min: 0)
+  e.end_time        = 2.weeks.ago.change(hour: 10, min: 30)
+  e.chat_url        = "https://chat.whatsapp.com/ecstaticdancestpete"
+  e.chat_platform   = :whatsapp
+  e.status          = :active
+  e.description     = "Come as you are. We dance for ninety minutes with no talking on the floor."
+end
+
+# Offsets (minutes from event.start_time): spread across 4 windows, peak at 0–15
+seed_check_ins(
+  event:   sunday_mass_past,
+  users:   attendees,
+  offsets: [ -24, -11, -4, 6, 10, 18, 31, 44 ]
+)
+
+AnonymousCheckInCount.find_or_create_by!(event: sunday_mass_past) { |c| c.count = 9 }
+
+# First 3 attendees are first-timers to Maria's events
+attendees.first(3).each do |user|
+  ci = CheckIn.find_by(user: user, event: sunday_mass_past)
+  next unless ci
+  UserHostFirstSeen.find_or_create_by!(user: user, host_user: maria) do |r|
+    r.first_seen_at = ci.checked_in_at
+  end
+end
+
+# ── 2. AcroYoga Jam — medium turnout ────────────────────────────────────────
+acroyoga_past = Event.find_or_create_by!(slug: "waterfront-north-acroyoga-past") do |e|
+  e.totem           = waterfront
+  e.host_user       = priya
+  e.title           = "AcroYoga Jam"
+  e.recurrence_rule = nil
+  e.start_time      = 11.days.ago.change(hour: 16, min: 0)
+  e.end_time        = 11.days.ago.change(hour: 17, min: 30)
+  e.chat_url        = "https://discord.gg/acroyogastpete"
+  e.chat_platform   = :discord
+  e.status          = :active
+  e.description     = "Partner acrobatics in a mellow circle. Drop in or pair up."
+end
+
+seed_check_ins(
+  event:   acroyoga_past,
+  users:   attendees.first(5),
+  offsets: [ -9, 4, 11, 23, 38 ]
+)
+
+AnonymousCheckInCount.find_or_create_by!(event: acroyoga_past) { |c| c.count = 4 }
+
+attendees.first(2).each do |user|
+  ci = CheckIn.find_by(user: user, event: acroyoga_past)
+  next unless ci
+  UserHostFirstSeen.find_or_create_by!(user: user, host_user: priya) do |r|
+    r.first_seen_at = ci.checked_in_at
+  end
+end
+
+# ── 3. Thursday Track (Riverside) — small turnout ───────────────────────────
+track_past = Event.find_or_create_by!(slug: "riverside-runners-thursday-track-past") do |e|
+  e.totem           = main_totem
+  e.host_user       = host
+  e.title           = "Thursday Track Workout"
+  e.recurrence_rule = nil
+  e.start_time      = 1.week.ago.change(hour: 6, min: 30)
+  e.end_time        = 1.week.ago.change(hour: 7, min: 30)
+  e.chat_url        = "https://chat.whatsapp.com/riversidetrack"
+  e.chat_platform   = :whatsapp
+  e.status          = :active
+  e.description     = "Speed work on the track. Intervals, tempo miles, suffering together."
+end
+
+seed_check_ins(
+  event:   track_past,
+  users:   attendees.first(6),
+  offsets: [ -17, -6, 2, 9, 21, 35 ]
+)
+
+AnonymousCheckInCount.find_or_create_by!(event: track_past) { |c| c.count = 3 }
+
+attendees.first(4).each do |user|
+  ci = CheckIn.find_by(user: user, event: track_past)
+  next unless ci
+  UserHostFirstSeen.find_or_create_by!(user: user, host_user: host) do |r|
+    r.first_seen_at = ci.checked_in_at
+  end
+end
+
+# ── 4. Meditation Circle — no check-ins (zero state) ────────────────────────
+Event.find_or_create_by!(slug: "waterfront-north-meditation-past") do |e|
+  e.totem           = waterfront
+  e.host_user       = lena
+  e.title           = "Meditation Circle"
+  e.recurrence_rule = nil
+  e.start_time      = 9.days.ago.change(hour: 7, min: 0)
+  e.end_time        = 9.days.ago.change(hour: 7, min: 30)
+  e.chat_url        = "https://t.me/meditationstpete"
+  e.chat_platform   = :telegram
+  e.status          = :active
+  e.description     = "Twenty minutes of silent sit."
+end
+
+# ── 5. North Shore Thursday Pickup — no check-ins (zero state) ──────────────
+Event.find_or_create_by!(slug: "north-shore-courts-pickup-past") do |e|
+  e.totem           = north_shore
+  e.host_user       = coach_j
+  e.title           = "Thursday Pickup"
+  e.recurrence_rule = nil
+  e.start_time      = 8.days.ago.change(hour: 18, min: 0)
+  e.end_time        = 8.days.ago.change(hour: 20, min: 0)
+  e.chat_url        = "https://discord.gg/northshorepickup"
+  e.chat_platform   = :discord
+  e.status          = :active
+  e.description     = "Open pickup volleyball at North Shore."
+end
+
+# ---------------------------------------------------------------------------
 # Summary
 # ---------------------------------------------------------------------------
 
@@ -399,6 +553,7 @@ puts "Seeded:"
 puts "  Users:  #{User.count} (password: 'password' for all)"
 puts "  Totems: #{Totem.count} (#{Totem.pluck(:slug).join(', ')})"
 puts "  Events: #{Event.count}"
+puts "  CheckIns: #{CheckIn.count} auth, #{AnonymousCheckInCount.sum(:count)} anon"
 puts ""
 puts "── Wireframe boards ──────────────────────────────────────────"
 puts "  Active (4 hosts, all window states):"
@@ -413,6 +568,17 @@ puts "  Cancelled event detail:"
 puts "    http://localhost:3000/t/waterfront-north/e/waterfront-north-volleyball-tournament"
 puts "  Empty landing (4.1.5):"
 puts "    http://localhost:3000/t/williams-park"
+puts ""
+puts "── Insights (host login: maria@example.com / password) ───────"
+puts "  Big turnout (8 auth + 9 anon, 3 first-timers):"
+puts "    http://localhost:3000/host/insights/waterfront-north-sunday-mass-past"
+puts "  Medium turnout (5 auth + 4 anon, 2 first-timers):"
+puts "    http://localhost:3000/host/insights/waterfront-north-acroyoga-past"
+puts "  Small turnout — host login: host@example.com"
+puts "    http://localhost:3000/host/insights/riverside-runners-thursday-track-past"
+puts "  Zero check-ins (quiet state):"
+puts "    http://localhost:3000/host/insights/waterfront-north-meditation-past"
+puts "    http://localhost:3000/host/insights/north-shore-courts-pickup-past"
 puts ""
 puts "── Legacy dev boards ─────────────────────────────────────────"
 puts "  Active:  http://localhost:3000/t/riverside-runners"

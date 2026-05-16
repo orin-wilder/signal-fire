@@ -9,6 +9,9 @@ Rails.application.routes.draw do
   get '/stpete', to: 'cities#show', defaults: { city_slug: 'stpete' }, as: :city_board
   get '/host-with-us', to: 'pages#host_inquiry', as: :host_inquiry
 
+  # Attendee profile / settings
+  get  '/profile', to: 'profiles#show', as: :user_profile
+
   # Public web — Totem Board + Host Page
   get  "/h/:host_slug",                               to: "hosts#show",                        as: :host_page
   get  "/about",                                      to: "pages#about",                       as: :about
@@ -45,6 +48,7 @@ Rails.application.routes.draw do
   get "/host", to: redirect("/host/dashboard"), as: :host_root
   namespace :host do
     get "dashboard", to: "dashboard#show", as: :dashboard
+    get "insights/:event_slug", to: "insights#show", as: :insights
     resources :events do
       member { patch :cancel, to: "events/cancellations#update" }
     end
@@ -53,6 +57,13 @@ Rails.application.routes.draw do
     get   "profile/password", to: "profiles/passwords#edit",   as: :profile_password
     patch "profile/password", to: "profiles/passwords#update"
     resources :totems, only: [:index]
+  end
+
+  # Clean URL in production: host.signalfire.live/insights/:event_slug
+  constraints(subdomain: "host") do
+    scope module: :host do
+      get "insights/:event_slug", to: "insights#show"
+    end
   end
 
   # Host auth

@@ -9,6 +9,7 @@ export interface CurrentUser {
   is_admin: boolean;
   push_token: string | null;
   notification_prefs: Record<string, boolean>;
+  host_sso_url?: string;
 }
 
 interface AuthResponse {

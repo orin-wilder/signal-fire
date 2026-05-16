@@ -1,0 +1,1 @@
+# No default fixtures — records are created in test setup to avoid uniqueness conflicts.

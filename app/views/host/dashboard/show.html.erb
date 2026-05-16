@@ -1,40 +1,47 @@
 <% content_for :title, "Dashboard — Signal Fire" %>
 
-<%# Time-based greeting helper %>
 <% hour = Time.current.hour %>
 <% greeting = hour < 12 ? "Morning" : hour < 18 ? "Afternoon" : "Evening" %>
 <% host_name = current_user.host_profile&.display_name || current_user.email.split("@").first.capitalize %>
 
+<% city_slug = @totems.first&.city_slug %>
+<% city_name = city_slug == "stpete" ? "St. Petersburg" : city_slug&.humanize %>
+
+<%# ── Breadcrumb ── %>
+<p class="font-mono text-[10px] tracking-widest text-stone uppercase mb-3">
+  Dashboard<% if city_name %> · <%= city_name %><% end %>
+</p>
+
 <%# ── Page header ── %>
-<div class="mb-6">
+<div class="mb-8">
   <h1 class="font-serif text-3xl text-ink"><%= greeting %>, <%= host_name %>.</h1>
   <p class="text-stone text-sm mt-0.5">
-    <%= pluralize(@upcoming_events.size, "upcoming event") %> · <%= @check_ins_this_week %> check-ins this week
+    <%= pluralize(@upcoming_events.size, "event") %> upcoming · <%= @check_ins_this_week %> check-ins this week
   </p>
 </div>
 
-<%# ── Stats cards ── %>
-<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-  <div class="bg-white/60 border border-stone/20 rounded-xl px-4 py-4">
-    <p class="font-mono text-2xl text-ink font-medium"><%= @check_ins_this_week %></p>
+<%# ── Stats ── %>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10 border-b border-stone/20 pb-10">
+  <div>
+    <p class="font-serif text-4xl text-ink"><%= @check_ins_this_week %></p>
     <p class="font-mono text-[10px] uppercase tracking-widest text-stone mt-1">Check-ins this week</p>
   </div>
-  <div class="bg-white/60 border border-stone/20 rounded-xl px-4 py-4">
-    <p class="font-mono text-2xl text-ink font-medium"><%= @follower_count %></p>
+  <div>
+    <p class="font-serif text-4xl text-ink"><%= @follower_count %></p>
     <p class="font-mono text-[10px] uppercase tracking-widest text-stone mt-1">Followers</p>
   </div>
-  <div class="bg-white/60 border border-stone/20 rounded-xl px-4 py-4">
-    <p class="font-mono text-2xl text-ink font-medium"><%= @upcoming_events.size %></p>
-    <p class="font-mono text-[10px] uppercase tracking-widest text-stone mt-1">Events lit upcoming</p>
+  <div>
+    <p class="font-serif text-4xl text-ink"><%= @first_timers_this_month %></p>
+    <p class="font-mono text-[10px] uppercase tracking-widest text-stone mt-1">First-timers this month</p>
   </div>
-  <div class="bg-white/60 border border-stone/20 rounded-xl px-4 py-4">
-    <p class="font-mono text-2xl text-ink font-medium"><%= @totems.size %></p>
-    <p class="font-mono text-[10px] uppercase tracking-widest text-stone mt-1">Assigned totems</p>
+  <div>
+    <p class="font-serif text-4xl text-ink"><%= @upcoming_events.size %></p>
+    <p class="font-mono text-[10px] uppercase tracking-widest text-stone mt-1">Events upcoming</p>
   </div>
 </div>
 
-<%# ── Events section ── %>
-<div class="flex items-center justify-between mb-4">
+<%# ── Events section header ── %>
+<div class="flex items-center justify-between mb-6">
   <div class="flex items-center gap-1 flex-wrap">
     <% if @totems.size > 1 %>
       <%= link_to "All", host_dashboard_path,
@@ -45,38 +52,81 @@
       <% end %>
     <% else %>
       <% @totems.each do |totem| %>
-        <span class="font-mono text-[10px] uppercase tracking-widest text-stone"><%= totem.name %></span>
+        <span class="font-mono text-[10px] uppercase tracking-widest text-stone">Totem · <%= totem.name %></span>
       <% end %>
     <% end %>
   </div>
-  <%= link_to "+ Create event", new_host_event_path,
+  <%= link_to "+ New event", new_host_event_path,
         class: "bg-ember text-white font-semibold px-4 py-2 rounded-lg hover:bg-ember/90 transition text-sm shrink-0" %>
 </div>
 
+<%# ── Events list ── %>
 <% all_events = @upcoming_events.to_a + @past_events.to_a %>
 
 <% if all_events.any? %>
-  <div class="overflow-x-auto rounded-xl border border-stone/20">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-stone/20 bg-white/40">
-          <th class="text-left font-mono text-[10px] uppercase tracking-widest text-stone px-4 py-3">Title</th>
-          <th class="text-left font-mono text-[10px] uppercase tracking-widest text-stone px-4 py-3 hidden sm:table-cell">When</th>
-          <th class="text-right font-mono text-[10px] uppercase tracking-widest text-stone px-4 py-3 hidden md:table-cell">Anon</th>
-          <th class="text-right font-mono text-[10px] uppercase tracking-widest text-stone px-4 py-3 hidden md:table-cell">Checked in</th>
-          <th class="text-left font-mono text-[10px] uppercase tracking-widest text-stone px-4 py-3">Status</th>
-          <th class="px-4 py-3"></th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-stone/10">
-        <% @upcoming_events.each do |event| %>
-          <%= render "host/events/event_row", event: event, management: false %>
-        <% end %>
-        <% @past_events.each do |event| %>
-          <%= render "host/events/event_row", event: event, management: false %>
-        <% end %>
-      </tbody>
-    </table>
+  <div class="divide-y divide-stone/10">
+    <% all_events.each do |event| %>
+      <%
+        now         = Time.current
+        next_occ    = event.next_occurrence
+        past        = event.end_time < now
+        own_event   = event.host_user_id == current_user.id
+        minutes_until = past ? nil : ((next_occ - now) / 60).to_i
+
+        status_label, status_classes, show_dot = if event.cancelled?
+          ["Cancelled", "bg-stone/10 text-stone", false]
+        elsif event.active_now?
+          ["Live now", "bg-ember text-white", true]
+        elsif past
+          ["Past", "bg-stone/10 text-stone", false]
+        elsif minutes_until < 60
+          ["Live in #{pluralize(minutes_until, 'minute')}", "bg-ember text-white", true]
+        elsif minutes_until < 1440
+          ["Live in #{pluralize((minutes_until / 60.0).round, 'hour')}", "bg-ember text-white", true]
+        elsif minutes_until < 10_080
+          ["Live in #{pluralize((minutes_until / 1440.0).ceil, 'day')}", "bg-ink text-white", true]
+        else
+          ["Upcoming", "bg-stone/10 text-stone", false]
+        end
+
+        total_check_ins = past ? (event.check_ins.size + event.anonymous_check_in_count&.count.to_i) : nil
+      %>
+      <div class="flex items-center justify-between py-4 gap-4">
+        <div class="min-w-0">
+          <p class="font-medium text-ink truncate"><%= event.title %></p>
+          <p class="text-sm text-stone mt-0.5">
+            <% if past %>
+              <%= event.start_time.strftime("%a, %b %-d · %-I:%M %p") %>
+              <% if total_check_ins > 0 %> · <%= pluralize(total_check_ins, "check-in") %><% end %>
+            <% elsif event.recurring? %>
+              <%= next_occ.strftime("%a, %b %-d · %-I:%M %p") %> · <%= event.recurrence_label %>
+            <% else %>
+              <%= event.start_time.strftime("%a, %b %-d · %-I:%M %p") %>
+            <% end %>
+          </p>
+        </div>
+
+        <div class="flex items-center gap-4 shrink-0">
+          <span class="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full whitespace-nowrap <%= status_classes %>">
+            <% if show_dot %>
+              <span class="w-1.5 h-1.5 rounded-full bg-current opacity-80" aria-hidden="true"></span>
+            <% end %>
+            <%= status_label %>
+          </span>
+
+          <% if past && own_event %>
+            <%= link_to "View Insights →", host_insights_path(event_slug: event.slug),
+                  class: "text-sm font-medium text-ember hover:text-ember/80 transition whitespace-nowrap" %>
+          <% elsif own_event %>
+            <%= link_to "Edit", edit_host_event_path(event),
+                  class: "text-sm text-stone hover:text-ink transition" %>
+          <% else %>
+            <%= link_to "View", host_event_path(event),
+                  class: "text-sm text-stone hover:text-ink transition" %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
   </div>
 <% else %>
   <div class="border border-dashed border-stone/30 rounded-xl p-10 text-center">

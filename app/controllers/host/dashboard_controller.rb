@@ -25,6 +25,14 @@ class Host::DashboardController < Host::ApplicationController
 
     @follower_count = HostFollow.where(host_user_id: current_user.id).count
 
+    totem_event_ids = Event.where(totem_id: totem_ids).pluck(:id)
+    @first_timers_this_month = CheckIn
+      .where(event_id: totem_event_ids)
+      .group(:user_id)
+      .having("MIN(check_ins.created_at) >= ?", Time.current.beginning_of_month)
+      .count
+      .size
+
     week_start = now.beginning_of_week
     week_end   = now.end_of_week
     event_ids_this_week = Event.where(totem_id: totem_ids)

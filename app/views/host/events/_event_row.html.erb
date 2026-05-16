@@ -2,7 +2,7 @@
   now = Time.current
   next_occ = event.next_occurrence
   past = event.end_time < now
-  days_until = past ? nil : [(next_occ.to_date - Time.zone.today).to_i, 0].max
+  minutes_until = past ? nil : ((next_occ - now) / 60).to_i
   own_event = event.host_user_id == current_user.id
 
   status_badge = if event.cancelled?
@@ -11,8 +11,12 @@
     { label: "Live now", classes: "bg-ember text-white" }
   elsif past
     { label: "Past", classes: "bg-stone/10 text-stone" }
-  elsif days_until <= 7
-    { label: days_until == 0 ? "Today" : "Live in #{days_until}d", classes: "bg-ink text-white" }
+  elsif minutes_until < 60
+    { label: "Live in #{pluralize(minutes_until, 'minute')}", classes: "bg-ink text-white" }
+  elsif minutes_until < 1440
+    { label: "Live in #{pluralize((minutes_until / 60.0).round, 'hour')}", classes: "bg-ink text-white" }
+  elsif minutes_until < 10_080
+    { label: "Live in #{pluralize((minutes_until / 1440.0).ceil, 'day')}", classes: "bg-ink text-white" }
   else
     { label: "Upcoming", classes: "bg-stone/10 text-ink" }
   end
@@ -64,7 +68,10 @@
 
   <%# Actions %>
   <td class="px-4 py-3 text-right whitespace-nowrap">
-    <% if own_event %>
+    <% if past && own_event %>
+      <%= link_to "View Insights →", host_insights_path(event_slug: event.slug),
+            class: "text-sm text-stone hover:text-ink transition" %>
+    <% elsif own_event %>
       <%= link_to "Edit", edit_host_event_path(event), class: "text-sm text-stone hover:text-ink transition" %>
     <% else %>
       <%= link_to "View", host_event_path(event), class: "text-sm text-stone hover:text-ink transition" %>

@@ -1,0 +1,96 @@
+<% content_for :title, "Insights · #{@event.title} — Signal Fire" %>
+
+<%# Back link %>
+<div class="mb-6">
+  <%= link_to "← Events", host_events_path, class: "font-mono text-[10px] uppercase tracking-widest text-stone hover:text-ink transition" %>
+</div>
+
+<%# Eyebrow %>
+<p class="font-mono text-[10px] uppercase tracking-widest text-stone mb-2">
+  Insights · <%= @event.title %> · <%= @event.start_time.strftime("%b %-d") %>
+</p>
+
+<%# Headline %>
+<h1 class="font-serif text-3xl md:text-4xl text-ink mb-1">
+  A look at last <%= @event.start_time.strftime("%A") %>.
+</h1>
+
+<%# Subtitle %>
+<p class="text-stone text-sm mb-8">
+  <%= pluralize(@total_checkins, "check-in") %>.
+  <% if @first_timer_count > 0 %>
+    <%= @first_timer_count %> first-<%= "timer".pluralize(@first_timer_count) %>.
+  <% end %>
+  A good <%= @event.start_time.strftime("%A") %>.
+</p>
+
+<%# ── Stat cards ── %>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
+  <div class="bg-white/60 border border-stone/20 rounded-xl px-4 py-4">
+    <p class="font-mono text-3xl text-ink font-medium"><%= @total_checkins %></p>
+    <p class="font-mono text-[10px] uppercase tracking-widest text-stone mt-1">Total check-ins</p>
+  </div>
+  <div class="bg-white/60 border border-stone/20 rounded-xl px-4 py-4">
+    <p class="font-mono text-3xl text-ink font-medium"><%= @authenticated_checkins %></p>
+    <p class="font-mono text-[10px] uppercase tracking-widest text-stone mt-1">Authenticated</p>
+  </div>
+  <div class="bg-white/60 border border-stone/20 rounded-xl px-4 py-4">
+    <p class="font-mono text-3xl text-ink font-medium"><%= @anonymous_checkins %></p>
+    <p class="font-mono text-[10px] uppercase tracking-widest text-stone mt-1">Anonymous web</p>
+  </div>
+  <div class="bg-white/60 border border-stone/20 rounded-xl px-4 py-4">
+    <p class="font-mono text-3xl text-ink font-medium"><%= @follower_count %></p>
+    <p class="font-mono text-[10px] uppercase tracking-widest text-stone mt-1">Followers</p>
+  </div>
+</div>
+
+<%# ── Bar chart ── %>
+<div class="mb-10">
+  <% if @checkins_by_window.any? %>
+    <div class="bg-white/60 border border-stone/20 rounded-xl px-6 pt-6 pb-4">
+      <%= bar_chart_svg(@checkins_by_window, event_start_time: @event.start_time) %>
+      <p class="text-[11px] text-stone mt-3">
+        Peak window highlighted. Helps you see when people actually arrive vs. when they say they will.
+      </p>
+    </div>
+  <% else %>
+    <div class="bg-white/60 border border-stone/20 rounded-xl px-6 py-8 text-center">
+      <p class="text-stone text-sm">No timed check-in data for this event.</p>
+    </div>
+  <% end %>
+</div>
+
+<%# ── Attendee name list ── %>
+<div>
+  <div class="flex items-baseline justify-between mb-4">
+    <p class="font-mono text-[10px] uppercase tracking-widest text-stone">Who showed up</p>
+  </div>
+
+  <% if @attendee_names.any? %>
+    <div class="bg-white/60 border border-stone/20 rounded-xl divide-y divide-stone/10">
+      <% visible = @attendee_names.first(6) %>
+      <% hidden_count = @attendee_names.size - visible.size %>
+
+      <% visible.each do |name, count| %>
+        <div class="flex items-center justify-between px-5 py-3">
+          <span class="text-ink text-sm"><%= name %></span>
+          <span class="font-mono text-[11px] text-stone"><%= count %> <%= "visit".pluralize(count) %></span>
+        </div>
+      <% end %>
+
+      <% if hidden_count > 0 %>
+        <div class="px-5 py-3">
+          <span class="font-mono text-[11px] text-stone">+ <%= hidden_count %> more</span>
+        </div>
+      <% end %>
+    </div>
+
+    <p class="text-[11px] text-stone mt-3">
+      First names only. No emails, no last names. Privacy guardrail enforced server-side.
+    </p>
+  <% else %>
+    <div class="bg-white/60 border border-stone/20 rounded-xl px-5 py-6">
+      <p class="text-stone text-sm">No authenticated check-ins recorded for this event.</p>
+    </div>
+  <% end %>
+</div>
