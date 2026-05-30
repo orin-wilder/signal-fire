@@ -3,14 +3,14 @@ databases:
     databaseName: signal_fire
     user: signal_fire
     plan: free
-    region: ohio
+    region: virginia
 
 services:
   - type: web
     name: signal-fire
     runtime: ruby
     plan: free
-    region: ohio
+    region: virginia
     buildCommand: bundle install && bundle exec rails assets:precompile && bundle exec rails assets:clean
     # preDeployCommand is not supported in the free plan, so we will run migrations and seeds as part of the build command.
     # In a production environment, we will want to run these commands separately to avoid downtime during deployment.
