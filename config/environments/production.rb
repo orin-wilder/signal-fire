@@ -88,6 +88,6 @@ Rails.application.configure do
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
-  # Allow host.signalfire.live subdomain (Event Insights, host dashboard)
   config.hosts << /.*\.signalfire\.live/
+  config.hosts << /.*\.onrender\.com/
 end
