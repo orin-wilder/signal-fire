@@ -73,7 +73,9 @@
       <%= render "check_in_button", event: @event, totem: @totem %>
     <% end %>
 
-    <%= render "join_chat_button", event: @event %>
+    <% if @event.chat_url.present? %>
+      <%= render "join_chat_button", event: @event %>
+    <% end %>
 
     <%# Save to calendar (§6.2) %>
     <% unless @event.cancelled? %>
