@@ -26,8 +26,6 @@ class Event < ApplicationRecord
   }, allow_nil: true
   validates :start_time, presence: true
   validates :end_time, presence: true
-  validates :chat_url, presence: true, if: -> { chat_platform.present? }
-  validate :chat_url_matches_platform
   validates :status, presence: true
   validate :end_time_after_start_time
 
@@ -104,13 +102,6 @@ class Event < ApplicationRecord
       n += 1
     end
     self.slug = candidate
-  end
-
-  def chat_url_matches_platform
-    return unless chat_url.present? && chat_platform.present?
-    unless ChatPlatformValidator.valid?(chat_platform, chat_url)
-      errors.add(:chat_url, "does not match the expected format for #{chat_platform}")
-    end
   end
 
   def end_time_after_start_time

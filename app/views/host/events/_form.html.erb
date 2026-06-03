@@ -254,31 +254,10 @@
 
     <%# ── Right column ── %>
     <div class="space-y-5 min-w-0">
-      <%# Messaging platform %>
-      <div data-controller="chat-url">
-        <div>
-          <%= f.label :chat_platform, "Messaging platform", class: label_class %>
-          <%= f.select :chat_platform,
-                Event.chat_platforms.keys.map { |p| [p.humanize, p] },
-                { prompt: "Select platform" },
-                data: { "chat-url-target": "platform", action: "change->chat-url#validate" },
-                class: field_class %>
-        </div>
-
-        <div class="mt-4">
-          <%= f.label :chat_url, "Group chat URL", class: label_class %>
-          <%= f.url_field :chat_url,
-                placeholder: "https://...",
-                data: { "chat-url-target": "url", action: "input->chat-url#validate" },
-                class: field_class %>
-          <p data-chat-url-target="feedback" class="text-xs text-stone mt-1.5"></p>
-        </div>
-      </div>
-
-      <%# URL validation info %>
-      <div class="bg-stone/5 border border-stone/20 rounded-xl p-4 text-xs text-stone">
-        <p class="font-medium text-ink mb-1">URL validation</p>
-        <p>Supports WhatsApp, Discord, Telegram, Signal, GroupMe, and Slack group links.</p>
+      <%# Group chat %>
+      <div>
+        <%= f.label :chat_url, "Group chat URL", class: label_class %>
+        <%= f.url_field :chat_url, placeholder: "https://...", class: field_class %>
       </div>
     </div>
   </div>
