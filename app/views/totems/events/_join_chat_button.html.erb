@@ -20,7 +20,7 @@
           <%= icon[:letter] %>
         </span>
       <% end %>
-      Open the <%= event.chat_platform.capitalize %> group
+      Open the <%= event.chat_platform&.capitalize || "group chat" %>
     <% end %>
     <p class="text-xs text-center text-[#867a60] mt-1">Group chat may still be active at host discretion.</p>
   </div>
@@ -34,6 +34,6 @@
         <%= icon[:letter] %>
       </span>
     <% end %>
-    Join on <%= event.chat_platform.capitalize %>
+    Join on <%= event.chat_platform&.capitalize || "group chat" %>
   <% end %>
 <% end %>

@@ -3,7 +3,7 @@ class Totems::EventsController < ApplicationController
 
   def show
     @window_state = @event.window_state
-    @host_profile = @event.host_user.host_profile
+    @host_profile = @event.host_user&.host_profile
     @host_follow  = current_user &&
       HostFollow.find_by(user: current_user, host_user_id: @event.host_user_id)
 
