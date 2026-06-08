@@ -1,5 +1,5 @@
 class Admin::TotemsController < Admin::ApplicationController
-  before_action :set_totem, only: [:edit, :update, :destroy, :qr]
+  before_action :set_totem, only: [:edit, :update, :destroy, :qr, :board_qr]
 
   def index
     @totems = Totem.includes(:host_totem_assignments)
@@ -45,6 +45,17 @@ class Admin::TotemsController < Admin::ApplicationController
               type: "image/png",
               disposition: "attachment",
               filename: "#{@totem.slug}-qr.png"
+  end
+
+  # QR pointing at the public bulletin board (the paint-stick sign target).
+  def board_qr
+    url = bulletin_board_url(@totem.slug)
+    qr = RQRCode::QRCode.new(url)
+    png = qr.as_png(size: 300, border_modules: 4)
+    send_data png.to_s,
+              type: "image/png",
+              disposition: "attachment",
+              filename: "#{@totem.slug}-board-qr.png"
   end
 
   private

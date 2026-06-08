@@ -2,11 +2,16 @@
 
 <div class="max-w-6xl">
   <p class="text-xs font-mono text-stone/50 uppercase tracking-widest mb-1">Admin · Internal</p>
-  <h1 class="font-serif text-3xl text-ink mb-1">Bulletin Board · Pending</h1>
-  <p class="font-mono text-xs text-stone uppercase tracking-widest mb-6"><%= @posts.size %> WAITING</p>
+  <h1 class="font-serif text-3xl text-ink mb-6">Bulletin Board.</h1>
 
-  <% if @posts.any? %>
-    <div class="bg-white border border-stone/20 rounded-xl overflow-hidden overflow-x-auto">
+  <%# ── Pending review queue ───────────────────────────────────────────────── %>
+  <div class="flex items-baseline justify-between mb-2">
+    <h2 class="font-serif text-2xl text-ink">Pending</h2>
+    <span class="font-mono text-xs text-stone uppercase tracking-widest"><%= @pending_posts.size %> WAITING</span>
+  </div>
+
+  <% if @pending_posts.any? %>
+    <div class="bg-white border border-stone/20 rounded-xl overflow-hidden overflow-x-auto mb-10">
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-stone/20 text-left">
@@ -21,7 +26,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-stone/10">
-          <% @posts.each do |post| %>
+          <% @pending_posts.each do |post| %>
             <tr class="hover:bg-stone/5 transition align-top">
               <td class="px-4 py-3">
                 <p class="font-serif text-base text-ink leading-tight"><%= post.totem.name %></p>
@@ -48,6 +53,7 @@
                 <div class="flex items-center justify-end gap-3">
                   <%= button_to "Approve", approve_admin_bulletin_post_path(post), method: :patch,
                         class: "bg-ember text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-ember/90 transition" %>
+                  <%= link_to "Edit", edit_admin_bulletin_post_path(post), class: "text-sm text-stone hover:text-ink transition" %>
                   <%= button_to "Delete", admin_bulletin_post_path(post), method: :delete,
                         class: "text-sm text-stone hover:text-ink transition",
                         form: { data: { turbo_confirm: "Delete this post?" } } %>
@@ -59,9 +65,65 @@
       </table>
     </div>
   <% else %>
-    <div class="bg-white border border-stone/20 rounded-xl px-6 py-16 text-center">
+    <div class="bg-white border border-stone/20 rounded-xl px-6 py-12 text-center mb-10">
       <p class="font-serif text-2xl text-ink mb-1">Queue's clear.</p>
       <p class="text-stone text-sm">Nothing waiting for review.</p>
+    </div>
+  <% end %>
+
+  <%# ── Approved · live on boards ───────────────────────────────────────────── %>
+  <div class="flex items-baseline justify-between mb-2">
+    <h2 class="font-serif text-2xl text-ink">Approved</h2>
+    <span class="font-mono text-xs text-stone uppercase tracking-widest"><%= @approved_posts.size %> LIVE</span>
+  </div>
+
+  <% if @approved_posts.any? %>
+    <div class="bg-white border border-stone/20 rounded-xl overflow-hidden overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-stone/20 text-left">
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Totem</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Event</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">When</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Description</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Recurrence</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-stone/10">
+          <% @approved_posts.each do |post| %>
+            <tr class="hover:bg-stone/5 transition align-top">
+              <td class="px-4 py-3">
+                <p class="font-serif text-base text-ink leading-tight"><%= post.totem.name %></p>
+              </td>
+              <td class="px-4 py-3 text-ink font-medium"><%= post.title %></td>
+              <td class="px-4 py-3 font-mono text-xs text-ink whitespace-nowrap"><%= bulletin_when(post.starts_at, dotted_day: false) %></td>
+              <td class="px-4 py-3 text-stone max-w-[16rem]"><%= truncate(post.description, length: 50) %></td>
+              <td class="px-4 py-3">
+                <% if post.recurring? %>
+                  <span class="font-mono text-[10px] tracking-widest uppercase text-ink border border-ink/40 rounded px-1.5 py-0.5"><%= bulletin_recurrence_label(post) %></span>
+                <% else %>
+                  <span class="text-stone">—</span>
+                <% end %>
+              </td>
+              <td class="px-4 py-3 text-right whitespace-nowrap">
+                <div class="flex items-center justify-end gap-3">
+                  <%= link_to "View", bulletin_board_path(post.totem.slug), target: "_blank", rel: "noopener",
+                        class: "text-sm text-stone hover:text-ink transition" %>
+                  <%= link_to "Edit", edit_admin_bulletin_post_path(post), class: "text-sm text-stone hover:text-ink transition" %>
+                  <%= button_to "Delete", admin_bulletin_post_path(post), method: :delete,
+                        class: "text-sm text-stone hover:text-ember transition",
+                        form: { data: { turbo_confirm: "Delete \"#{post.title}\"? This removes it from the board." } } %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white border border-stone/20 rounded-xl px-6 py-12 text-center">
+      <p class="text-stone text-sm">Nothing approved yet.</p>
     </div>
   <% end %>
 </div>

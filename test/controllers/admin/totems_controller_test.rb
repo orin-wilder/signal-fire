@@ -180,6 +180,15 @@ class Admin::TotemsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.headers["Content-Disposition"], "#{@totem.slug}-qr.png"
   end
 
+  test "GET /admin/totems/:id/board_qr sends a board PNG file" do
+    sign_in_as_admin
+    get board_qr_admin_totem_path(@totem)
+    assert_response :success
+    assert_equal "image/png", response.content_type
+    assert_includes response.headers["Content-Disposition"], "attachment"
+    assert_includes response.headers["Content-Disposition"], "#{@totem.slug}-board-qr.png"
+  end
+
   private
 
   def sign_in_as_admin

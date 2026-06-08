@@ -93,7 +93,10 @@ Rails.application.routes.draw do
   # Admin console
   namespace :admin do
     resources :totems do
-      member { get :qr }
+      member do
+        get :qr
+        get :board_qr
+      end
     end
     resources :hosts, only: [:index, :new, :create, :edit, :update, :destroy] do
       member do
@@ -102,7 +105,7 @@ Rails.application.routes.draw do
       end
     end
     resources :events
-    resources :bulletin_posts, only: [:index, :destroy] do
+    resources :bulletin_posts, only: [:index, :edit, :update, :destroy] do
       member do
         patch :approve
       end
