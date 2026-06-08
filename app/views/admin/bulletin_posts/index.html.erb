@@ -1,0 +1,67 @@
+<% content_for :title, "Bulletin Posts — Signal Fire Admin" %>
+
+<div class="max-w-6xl">
+  <p class="text-xs font-mono text-stone/50 uppercase tracking-widest mb-1">Admin · Internal</p>
+  <h1 class="font-serif text-3xl text-ink mb-1">Bulletin Board · Pending</h1>
+  <p class="font-mono text-xs text-stone uppercase tracking-widest mb-6"><%= @posts.size %> WAITING</p>
+
+  <% if @posts.any? %>
+    <div class="bg-white border border-stone/20 rounded-xl overflow-hidden overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-stone/20 text-left">
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Totem</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Event</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">When</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Description</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Recurrence</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">From (IP)</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Submitted</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-stone/10">
+          <% @posts.each do |post| %>
+            <tr class="hover:bg-stone/5 transition align-top">
+              <td class="px-4 py-3">
+                <p class="font-serif text-base text-ink leading-tight"><%= post.totem.name %></p>
+                <p class="font-mono text-[10px] text-stone uppercase tracking-widest mt-0.5"><%= post.totem.bulletin_board_scan_count %> SCANS</p>
+              </td>
+              <td class="px-4 py-3">
+                <p class="text-ink font-medium"><%= post.title %></p>
+                <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded font-mono text-[10px] tracking-widest uppercase bg-stone/15 text-stone">PENDING</span>
+              </td>
+              <td class="px-4 py-3 font-mono text-xs text-ink whitespace-nowrap"><%= bulletin_when(post.starts_at, dotted_day: false) %></td>
+              <td class="px-4 py-3 text-stone max-w-[16rem]"><%= truncate(post.description, length: 50) %></td>
+              <td class="px-4 py-3">
+                <% if post.recurring? %>
+                  <span class="font-mono text-[10px] tracking-widest uppercase text-ink border border-ink/40 rounded px-1.5 py-0.5"><%= bulletin_recurrence_label(post) %></span>
+                <% else %>
+                  <span class="text-stone">—</span>
+                <% end %>
+              </td>
+              <td class="px-4 py-3 font-mono text-xs text-stone whitespace-nowrap"><%= post.submitter_ip.presence || "—" %></td>
+              <td class="px-4 py-3 font-mono text-xs text-stone whitespace-nowrap" title="<%= post.created_at.in_time_zone('America/New_York').strftime('%b %-d, %Y %-I:%M %p') %>">
+                <%= time_ago_in_words(post.created_at) %> ago
+              </td>
+              <td class="px-4 py-3 text-right whitespace-nowrap">
+                <div class="flex items-center justify-end gap-3">
+                  <%= button_to "Approve", approve_admin_bulletin_post_path(post), method: :patch,
+                        class: "bg-ember text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-ember/90 transition" %>
+                  <%= button_to "Delete", admin_bulletin_post_path(post), method: :delete,
+                        class: "text-sm text-stone hover:text-ink transition",
+                        form: { data: { turbo_confirm: "Delete this post?" } } %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white border border-stone/20 rounded-xl px-6 py-16 text-center">
+      <p class="font-serif text-2xl text-ink mb-1">Queue's clear.</p>
+      <p class="text-stone text-sm">Nothing waiting for review.</p>
+    </div>
+  <% end %>
+</div>

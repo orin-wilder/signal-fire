@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_14_020147) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_08_120001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -20,6 +20,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_020147) do
     t.bigint "event_id", null: false
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_anonymous_check_in_counts_on_event_id", unique: true
+  end
+
+  create_table "bulletin_posts", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "description", null: false
+    t.string "recurrence_cadence"
+    t.boolean "recurring", default: false, null: false
+    t.datetime "starts_at", null: false
+    t.string "status", default: "pending", null: false
+    t.string "submitter_ip"
+    t.string "title", null: false
+    t.bigint "totem_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["starts_at"], name: "index_bulletin_posts_on_starts_at"
+    t.index ["status"], name: "index_bulletin_posts_on_status"
+    t.index ["totem_id"], name: "index_bulletin_posts_on_totem_id"
   end
 
   create_table "check_ins", force: :cascade do |t|
@@ -258,6 +274,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_020147) do
 
   create_table "totems", force: :cascade do |t|
     t.boolean "active", default: false, null: false
+    t.integer "bulletin_board_scan_count", default: 0, null: false
     t.string "character_description", limit: 140
     t.string "city_slug", default: "stpete", null: false
     t.datetime "created_at", null: false
@@ -303,6 +320,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_020147) do
   end
 
   add_foreign_key "anonymous_check_in_counts", "events"
+  add_foreign_key "bulletin_posts", "totems"
   add_foreign_key "check_ins", "events"
   add_foreign_key "check_ins", "users"
   add_foreign_key "empty_totem_email_captures", "totems"

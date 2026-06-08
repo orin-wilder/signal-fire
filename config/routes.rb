@@ -22,6 +22,10 @@ Rails.application.routes.draw do
   get  "/t/:slug/e/:event_slug/check_ins/success",   to: "totems/check_ins#success",          as: :totem_event_check_in_success
   post "/empty_totem_email_captures",                 to: "empty_totem_email_captures#create", as: :empty_totem_email_captures
 
+  # Public web — Bulletin Board (standalone, anonymous, reached via QR)
+  get  "/board/:totem_slug",       to: "bulletin_boards#show",   as: :bulletin_board
+  post "/board/:totem_slug/posts", to: "bulletin_boards#create", as: :bulletin_board_posts
+
   # Web totem favorite toggle and host follow (session auth)
   resources :totem_favorites, only: [:create, :destroy]
   resources :host_follows,    only: [:create, :destroy]
@@ -98,6 +102,11 @@ Rails.application.routes.draw do
       end
     end
     resources :events
+    resources :bulletin_posts, only: [:index, :destroy] do
+      member do
+        patch :approve
+      end
+    end
   end
 
   # Mobile API

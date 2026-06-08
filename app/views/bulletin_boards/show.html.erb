@@ -1,0 +1,69 @@
+<% content_for :title, "#{@totem.name} — Signal Fire Board" %>
+
+<div data-controller="bulletin-board">
+
+  <%# ── Masthead ── %>
+  <p class="bb-kicker">A SIGNAL FIRE BOARD</p>
+  <h1 class="bb-location"><%= @totem.name %></h1>
+  <p class="bb-sub">What neighbors are doing here. Anyone can add to it.</p>
+
+  <%# ── Primary CTA (high) ── %>
+  <button type="button" class="bb-cta" data-bulletin-board-target="cta" data-action="bulletin-board#open">
+    Add an event here
+  </button>
+
+  <%# ── Inline submit panel ── %>
+  <div class="bb-panel" hidden data-bulletin-board-target="panel">
+    <div id="bulletin-form">
+      <%= render "bulletin_boards/form", totem: @totem, post: @post %>
+    </div>
+  </div>
+
+  <%# ── Upcoming / empty state ── %>
+  <% if @upcoming_posts.any? %>
+    <div class="bb-section">
+      <span class="bb-kicker">UPCOMING</span>
+      <span class="bb-rule"></span>
+    </div>
+    <ul class="bb-rows">
+      <% @upcoming_posts.each do |post| %>
+        <li class="bb-row">
+          <h2 class="bb-title">
+            <%= post.title %><% if post.recurring? %><span class="bb-badge"><%= bulletin_recurrence_label(post) %></span><% end %>
+          </h2>
+          <p class="bb-meta"><%= bulletin_when(post.starts_at) %></p>
+          <p class="bb-desc"><%= post.description %></p>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <h2 class="bb-empty-title">Nothing posted here yet.</h2>
+    <p class="bb-empty-body">Be the first to put something on the board — a run club, a jam, a cleanup, whatever you're starting.</p>
+  <% end %>
+
+  <%# ── Earlier / past ── %>
+  <% if @past_posts.any? %>
+    <div class="bb-earlier">
+      <span class="bb-rule"></span>
+      <span class="bb-kicker">— EARLIER —</span>
+      <span class="bb-rule"></span>
+    </div>
+    <ul class="bb-rows">
+      <% @past_posts.each do |post| %>
+        <li class="bb-row-past">
+          <h2 class="bb-title"><%= post.title %></h2>
+          <p class="bb-meta"><%= bulletin_when(post.starts_at) %></p>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <%# ── Footer ── %>
+  <p class="bb-footer">SIGNAL FIRE · A COMMUNITY PLAY TOOLS PROJECT</p>
+
+  <%# ── Sticky bottom CTA (mobile) ── %>
+  <button type="button" class="bb-cta bb-cta-sticky" data-bulletin-board-target="cta" data-action="bulletin-board#open">
+    Add an event here
+  </button>
+
+</div>

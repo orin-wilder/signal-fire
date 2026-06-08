@@ -4,6 +4,7 @@ class Totem < ApplicationRecord
   has_many :events
   has_many :totem_favorites
   has_many :empty_totem_email_captures
+  has_many :bulletin_posts, dependent: :destroy
 
   validates :name, presence: true
   validates :location, presence: true
