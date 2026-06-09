@@ -1,7 +1,18 @@
 class BulletinBoardsController < ApplicationController
   layout "bulletin_board"
 
-  before_action :set_totem
+  CITY_SLUG = "stpete".freeze
+
+  before_action :set_totem, except: [:index]
+
+  # Directory of active boards in the city — a board is "active" when it has at
+  # least one currently-upcoming approved post (the BulletinPost.upcoming scope).
+  def index
+    active_totem_ids = BulletinPost.upcoming.reorder(nil).distinct.pluck(:totem_id)
+    @totems = Totem.for_city(CITY_SLUG)
+                   .where(id: active_totem_ids)
+                   .order(:name)
+  end
 
   # Public board for one totem. Anonymous, no auth.
   def show

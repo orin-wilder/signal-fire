@@ -1,0 +1,32 @@
+<% content_for :title, "St. Pete Boards — Signal Fire" %>
+
+<%# ── Masthead ── %>
+<p class="bb-kicker">SIGNAL FIRE BOARDS</p>
+<h1 class="bb-location">St. Petersburg</h1>
+<p class="bb-sub">Neighborhood boards with something happening right now.</p>
+
+<% if @totems.any? %>
+  <div class="bb-section">
+    <span class="bb-kicker">ACTIVE BOARDS</span>
+    <span class="bb-rule"></span>
+  </div>
+  <ul class="bb-rows">
+    <% @totems.each do |totem| %>
+      <% next_post = totem.bulletin_posts.upcoming.first %>
+      <li class="bb-row">
+        <%= link_to bulletin_board_path(totem.slug), class: "bb-board-link" do %>
+          <h2 class="bb-title"><%= totem.name %><span class="bb-arrow">→</span></h2>
+          <% if next_post %>
+            <p class="bb-meta"><%= bulletin_when(next_post.starts_at) %> · <%= next_post.title %></p>
+          <% end %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <h2 class="bb-empty-title">No active boards yet.</h2>
+  <p class="bb-empty-body">Check back soon — boards light up when neighbors post events.</p>
+<% end %>
+
+<%# ── Footer ── %>
+<p class="bb-footer">SIGNAL FIRE · A COMMUNITY PLAY TOOLS PROJECT</p>

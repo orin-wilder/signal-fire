@@ -23,6 +23,7 @@ Rails.application.routes.draw do
   post "/empty_totem_email_captures",                 to: "empty_totem_email_captures#create", as: :empty_totem_email_captures
 
   # Public web — Bulletin Board (standalone, anonymous, reached via QR)
+  get  "/stpeteboards",            to: "bulletin_boards#index",  as: :bulletin_boards_directory
   get  "/board/:totem_slug",       to: "bulletin_boards#show",   as: :bulletin_board
   post "/board/:totem_slug/posts", to: "bulletin_boards#create", as: :bulletin_board_posts
 

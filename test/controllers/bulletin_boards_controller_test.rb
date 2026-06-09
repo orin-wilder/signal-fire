@@ -41,6 +41,52 @@ class BulletinBoardsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".bb-empty-title", text: /nothing posted here yet/i
   end
 
+  test "board show page links to the boards directory" do
+    get bulletin_board_path(@totem.slug)
+    assert_select "a.bb-otherboards[href=?]", bulletin_boards_directory_path, text: /see other boards/i
+  end
+
+  # ── Directory (/stpeteboards) ────────────────────────────────────────────────
+
+  test "GET directory lists boards with an upcoming approved post and links to each board" do
+    @totem.bulletin_posts.create!(title: "Approved jam", starts_at: 2.days.from_now,
+                                  description: "come play", status: "approved")
+    get bulletin_boards_directory_path
+    assert_response :success
+    assert_select "h2.bb-title", text: /#{@totem.name}/
+    assert_select "a.bb-board-link[href=?]", bulletin_board_path(@totem.slug)
+  end
+
+  test "GET directory keeps a board listed only once even with several upcoming posts" do
+    @totem.bulletin_posts.create!(title: "Jam one", starts_at: 2.days.from_now,
+                                  description: "x", status: "approved")
+    @totem.bulletin_posts.create!(title: "Jam two", starts_at: 5.days.from_now,
+                                  description: "x", status: "approved")
+    get bulletin_boards_directory_path
+    assert_select "a.bb-board-link[href=?]", bulletin_board_path(@totem.slug), count: 1
+  end
+
+  test "GET directory excludes boards whose posts are only pending or past" do
+    @totem.bulletin_posts.create!(title: "Secret pending", starts_at: 2.days.from_now,
+                                  description: "x", status: "pending")
+    past = totems(:secondary_totem).bulletin_posts.new(title: "Old jam", starts_at: 2.days.ago,
+                                                       description: "x", status: "approved", recurring: false)
+    past.save!(validate: false) # starts_at_in_future only runs on :create
+    get bulletin_boards_directory_path
+    assert_response :success
+    assert_select "a.bb-board-link", count: 0
+    assert_select ".bb-empty-title", text: /no active boards/i
+  end
+
+  test "GET directory only includes boards in the city" do
+    other = Totem.create!(name: "Tampa Totem", slug: "tampa-totem", location: "Tampa Park",
+                          city_slug: "tampa", active: true)
+    other.bulletin_posts.create!(title: "Tampa jam", starts_at: 2.days.from_now,
+                                 description: "x", status: "approved")
+    get bulletin_boards_directory_path
+    assert_select "a.bb-board-link[href=?]", bulletin_board_path(other.slug), count: 0
+  end
+
   # ── Create ─────────────────────────────────────────────────────────────────
 
   test "POST creates a pending post and captures IP" do
