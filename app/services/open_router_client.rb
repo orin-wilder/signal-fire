@@ -8,6 +8,12 @@ class OpenRouterClient
   OPEN_TIMEOUT = 5
   READ_TIMEOUT = 30
 
+  # Default model for all AI features — cheap + capable, fits the $20/mo cap.
+  # NOTE: OpenRouter retires slugs (e.g. the old gemini-2.0-flash-001 now 404s),
+  # so keep this as the single source of truth and verify against
+  # https://openrouter.ai/api/v1/models before changing.
+  DEFAULT_MODEL = "google/gemini-2.5-flash-lite"
+
   Result = Data.define(:ok, :data, :error)
 
   # The real HTTP path. Net::HTTP defaults to infinite timeouts, so set them

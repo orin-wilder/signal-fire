@@ -192,6 +192,66 @@
         vertical-align: baseline;
       }
 
+      /* ── "More info" source link on a post row ── */
+      .bb-morelink {
+        display: inline-block;
+        margin-top: 6px;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        color: var(--stone);
+        text-decoration: none;
+        border-bottom: 1px solid var(--line);
+      }
+      .bb-morelink:hover { color: var(--ink); }
+
+      /* ── Other-boards carousel ── */
+      .bb-boards-scroll {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding: 14px 0 8px;
+        margin: 0 -20px;
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+      .bb-board-tile {
+        flex: 0 0 auto;
+        width: 200px;
+        scroll-snap-align: start;
+        padding: 14px;
+        background: var(--paper-2);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        text-decoration: none;
+        color: inherit;
+      }
+      .bb-board-name {
+        font-family: var(--serif);
+        font-size: 19px;
+        line-height: 1.1;
+        color: var(--ink);
+        margin: 0 0 6px;
+      }
+      .bb-board-meta {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--stone);
+        margin: 0 0 2px;
+      }
+      .bb-board-title {
+        font-size: 14px;
+        color: var(--ink);
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
       /* ── "See other boards" link ── */
       .bb-otherboards {
         display: block;

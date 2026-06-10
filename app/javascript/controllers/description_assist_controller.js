@@ -67,7 +67,11 @@ export default class extends Controller {
   }
 
   #busy(isBusy) {
-    [this.enhanceBtnTarget, this.summarizeBtnTarget].forEach((b) => { b.disabled = isBusy })
+    // Either button may be absent (e.g. the bulletin form wires only one).
+    const buttons = []
+    if (this.hasEnhanceBtnTarget) buttons.push(this.enhanceBtnTarget)
+    if (this.hasSummarizeBtnTarget) buttons.push(this.summarizeBtnTarget)
+    buttons.forEach((b) => { b.disabled = isBusy })
   }
 
   // Status copy is always stone/ink — ember is reserved for live states only.

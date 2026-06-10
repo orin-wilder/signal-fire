@@ -1,6 +1,13 @@
 class BulletinPost < ApplicationRecord
   CADENCES = %w[weekly monthly].freeze
 
+  # Provenance, shown in admin only for now. New values append here.
+  SOURCE_LABELS = {
+    "public_submission" => "Visitor",
+    "admin_added"       => "Admin",
+    "scouted"           => "Scouted"
+  }.freeze
+
   belongs_to :totem
 
   scope :approved, -> { where(status: "approved") }
@@ -25,6 +32,12 @@ class BulletinPost < ApplicationRecord
   validates :starts_at, presence: true
   validate  :starts_at_in_future, on: :create
   validates :recurrence_cadence, inclusion: { in: CADENCES }, if: :recurring?
+  validates :source_url, allow_blank: true,
+    format: { with: %r{\Ahttps?://}i, message: "must start with http:// or https://" }
+
+  def source_label
+    SOURCE_LABELS.fetch(source, source.to_s.titleize)
+  end
 
   private
 

@@ -8,10 +8,7 @@ class BulletinBoardsController < ApplicationController
   # Directory of active boards in the city — a board is "active" when it has at
   # least one currently-upcoming approved post (the BulletinPost.upcoming scope).
   def index
-    active_totem_ids = BulletinPost.upcoming.reorder(nil).distinct.pluck(:totem_id)
-    @totems = Totem.for_city(CITY_SLUG)
-                   .where(id: active_totem_ids)
-                   .order(:name)
+    @totems = active_boards
   end
 
   # Public board for one totem. Anonymous, no auth.
@@ -21,6 +18,7 @@ class BulletinBoardsController < ApplicationController
     @upcoming_posts = @totem.bulletin_posts.upcoming
     @past_posts     = @totem.bulletin_posts.past
     @post           = @totem.bulletin_posts.new
+    @other_boards   = active_boards.where.not(id: @totem.id)
   end
 
   def create
@@ -39,6 +37,7 @@ class BulletinBoardsController < ApplicationController
         format.html do
           @upcoming_posts = @totem.bulletin_posts.upcoming
           @past_posts     = @totem.bulletin_posts.past
+          @other_boards   = active_boards.where.not(id: @totem.id)
           render :show, status: :unprocessable_entity
         end
       end
@@ -46,6 +45,12 @@ class BulletinBoardsController < ApplicationController
   end
 
   private
+
+  # Boards in the city with at least one currently-upcoming approved post.
+  def active_boards
+    active_totem_ids = BulletinPost.upcoming.reorder(nil).distinct.pluck(:totem_id)
+    Totem.for_city(CITY_SLUG).where(id: active_totem_ids).order(:name)
+  end
 
   def set_totem
     @totem = Totem.find_by!(slug: params[:totem_slug])
@@ -57,7 +62,7 @@ class BulletinBoardsController < ApplicationController
   # build starts_at. starts_at itself is composed here, not mass-assigned.
   def post_params
     permitted = params.require(:bulletin_post)
-                      .permit(:title, :description, :recurring, :recurrence_cadence, :date, :time)
+                      .permit(:title, :description, :recurring, :recurrence_cadence, :date, :time, :source_url)
 
     date = permitted.delete(:date)
     time = permitted.delete(:time)

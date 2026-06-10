@@ -44,7 +44,7 @@ class Admin::BulletinPostsController < Admin::ApplicationController
   # to build starts_at. Cadence is cleared when the post isn't recurring.
   def post_params
     permitted = params.require(:bulletin_post)
-                      .permit(:title, :description, :recurring, :recurrence_cadence, :date, :time)
+                      .permit(:title, :description, :recurring, :recurrence_cadence, :date, :time, :source_url)
 
     date = permitted.delete(:date)
     time = permitted.delete(:time)

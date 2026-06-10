@@ -114,6 +114,8 @@ Rails.application.routes.draw do
         patch :approve
       end
     end
+    # Admin-only AI "polish" for bulletin descriptions (summarize keeps the ≤160 cap).
+    post "bulletin_posts/description/summarize", to: "bulletin_posts/descriptions#summarize", as: :bulletin_post_description_summarize
   end
 
   # Mobile API

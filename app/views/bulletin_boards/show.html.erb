@@ -33,6 +33,9 @@
           </h2>
           <p class="bb-meta"><%= bulletin_when(post.starts_at) %></p>
           <p class="bb-desc"><%= post.description %></p>
+          <% if post.source_url.present? %>
+            <a class="bb-morelink" href="<%= post.source_url %>" target="_blank" rel="noopener noreferrer">↗ More info</a>
+          <% end %>
         </li>
       <% end %>
     </ul>
@@ -58,8 +61,12 @@
     </ul>
   <% end %>
 
-  <%# ── See other boards ── %>
-  <%= link_to "See other boards", bulletin_boards_directory_path, class: "bb-otherboards" %>
+  <%# ── Other boards (carousel) ── %>
+  <% if @other_boards.any? %>
+    <%= render "other_boards", boards: @other_boards %>
+  <% else %>
+    <%= link_to "See other boards", bulletin_boards_directory_path, class: "bb-otherboards" %>
+  <% end %>
 
   <%# ── Footer ── %>
   <p class="bb-footer">SIGNAL FIRE · A COMMUNITY PLAY TOOLS PROJECT</p>

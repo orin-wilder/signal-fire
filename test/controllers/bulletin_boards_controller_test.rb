@@ -41,9 +41,48 @@ class BulletinBoardsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".bb-empty-title", text: /nothing posted here yet/i
   end
 
-  test "board show page links to the boards directory" do
+  test "board show page links to the boards directory when no other boards are active" do
     get bulletin_board_path(@totem.slug)
     assert_select "a.bb-otherboards[href=?]", bulletin_boards_directory_path, text: /see other boards/i
+  end
+
+  # ── B1: optional source link ────────────────────────────────────────────────
+
+  test "approved post with a source_url renders a More info link" do
+    @totem.bulletin_posts.create!(title: "Porch concert", starts_at: 2.days.from_now,
+                                  description: "acoustic", status: "approved",
+                                  source_url: "https://example.com/show")
+    get bulletin_board_path(@totem.slug)
+    assert_select "a.bb-morelink[href=?]", "https://example.com/show", text: /more info/i
+  end
+
+  test "POST create accepts a source_url and stays pending until approved" do
+    post bulletin_board_posts_path(@totem.slug), params: {
+      bulletin_post: {
+        title: "Night market", date: 5.days.from_now.strftime("%Y-%m-%d"), time: "18:00",
+        description: "stalls + music", recurring: "0", source_url: "https://example.com/market"
+      }
+    }
+    created = BulletinPost.last
+    assert_equal "https://example.com/market", created.source_url
+    assert_equal "pending", created.status
+    # Not visible on the board (pending) — so the link is not yet public.
+    get bulletin_board_path(@totem.slug)
+    assert_select "a.bb-morelink", count: 0
+  end
+
+  # ── B2: other-boards carousel ───────────────────────────────────────────────
+
+  test "show lists other active boards excluding the current totem" do
+    other = totems(:secondary_totem)
+    @totem.bulletin_posts.create!(title: "Here jam", starts_at: 2.days.from_now,
+                                  description: "x", status: "approved")
+    other.bulletin_posts.create!(title: "There jam", starts_at: 3.days.from_now,
+                                 description: "y", status: "approved")
+
+    get bulletin_board_path(@totem.slug)
+    assert_select "a.bb-board-tile[href=?]", bulletin_board_path(other.slug)
+    assert_select "a.bb-board-tile[href=?]", bulletin_board_path(@totem.slug), count: 0
   end
 
   # ── Directory (/stpeteboards) ────────────────────────────────────────────────

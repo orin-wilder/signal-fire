@@ -37,9 +37,25 @@
     </div>
   </div>
 
-  <div>
+  <div data-controller="description-assist"
+       data-description-assist-summarize-url-value="<%= admin_bulletin_post_description_summarize_path %>">
     <%= f.label :description, "Description", class: label_class %>
-    <%= f.text_field :description, required: true, maxlength: 160, class: field_class %>
+    <%= f.text_field :description, required: true, maxlength: 160,
+          data: { "description-assist-target": "description" }, class: field_class %>
+    <div class="flex flex-wrap items-center gap-2 mt-2">
+      <button type="button"
+              data-description-assist-target="summarizeBtn"
+              data-action="description-assist#summarize"
+              class="text-sm px-3 py-1.5 border border-stone/40 rounded-lg text-ink hover:bg-stone/5 transition cursor-pointer disabled:opacity-50">
+        Polish with AI
+      </button>
+      <span data-description-assist-target="status" role="status" aria-live="polite" class="text-xs text-stone"></span>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :source_url, "Link (optional)", class: label_class %>
+    <%= f.url_field :source_url, placeholder: "https://…", class: field_class %>
   </div>
 
   <fieldset>

@@ -33,8 +33,15 @@
                 <p class="font-mono text-[10px] text-stone uppercase tracking-widest mt-0.5"><%= post.totem.bulletin_board_scan_count %> SCANS</p>
               </td>
               <td class="px-4 py-3">
-                <p class="text-ink font-medium"><%= post.title %></p>
+                <p class="text-ink font-medium">
+                  <%= post.title %>
+                  <% if post.source_url.present? %>
+                    <%= link_to "↗", post.source_url, target: "_blank", rel: "noopener noreferrer",
+                          class: "text-stone hover:text-ink", title: "Open submitted link" %>
+                  <% end %>
+                </p>
                 <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded font-mono text-[10px] tracking-widest uppercase bg-stone/15 text-stone">PENDING</span>
+                <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded font-mono text-[10px] tracking-widest uppercase bg-stone/10 text-stone" title="Source"><%= post.source_label %></span>
               </td>
               <td class="px-4 py-3 font-mono text-xs text-ink whitespace-nowrap"><%= bulletin_when(post.starts_at, dotted_day: false) %></td>
               <td class="px-4 py-3 text-stone max-w-[16rem]"><%= truncate(post.description, length: 50) %></td>
@@ -96,7 +103,16 @@
               <td class="px-4 py-3">
                 <p class="font-serif text-base text-ink leading-tight"><%= post.totem.name %></p>
               </td>
-              <td class="px-4 py-3 text-ink font-medium"><%= post.title %></td>
+              <td class="px-4 py-3">
+                <p class="text-ink font-medium">
+                  <%= post.title %>
+                  <% if post.source_url.present? %>
+                    <%= link_to "↗", post.source_url, target: "_blank", rel: "noopener noreferrer",
+                          class: "text-stone hover:text-ink", title: "Open link" %>
+                  <% end %>
+                </p>
+                <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded font-mono text-[10px] tracking-widest uppercase bg-stone/10 text-stone" title="Source"><%= post.source_label %></span>
+              </td>
               <td class="px-4 py-3 font-mono text-xs text-ink whitespace-nowrap"><%= bulletin_when(post.starts_at, dotted_day: false) %></td>
               <td class="px-4 py-3 text-stone max-w-[16rem]"><%= truncate(post.description, length: 50) %></td>
               <td class="px-4 py-3">

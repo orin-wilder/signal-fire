@@ -3,7 +3,7 @@ module Ai
   # an event description. Owns the prompts + parsing; OpenRouterClient owns
   # transport. Returns a small Data result so callers don't touch raw JSON.
   class DescriptionAssistant
-    MODEL = "google/gemini-2.0-flash-001"
+    MODEL = OpenRouterClient::DEFAULT_MODEL
 
     Result = Data.define(:ok, :text, :error)
 

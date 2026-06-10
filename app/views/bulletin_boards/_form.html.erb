@@ -76,6 +76,17 @@
     </div>
   </div>
 
+  <div class="bb-field">
+    <%= f.label :source_url, "Link (optional)", class: "bb-label" %>
+    <%= f.url_field :source_url,
+          value: post.source_url,
+          class: "bb-input",
+          placeholder: "https://… a page with more info" %>
+    <% if post.errors[:source_url].any? %>
+      <p class="bb-error"><%= post.errors[:source_url].first %></p>
+    <% end %>
+  </div>
+
   <%= f.submit "Put it on the board", class: "bb-submit" %>
 
   <p class="bb-helper">No account, no email. A person reviews every post before it shows up.</p>

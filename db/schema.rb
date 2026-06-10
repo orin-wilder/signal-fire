@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_09_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_09_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,6 +27,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_000003) do
     t.string "description", null: false
     t.string "recurrence_cadence"
     t.boolean "recurring", default: false, null: false
+    t.string "source", default: "public_submission", null: false
+    t.string "source_url"
     t.datetime "starts_at", null: false
     t.string "status", default: "pending", null: false
     t.string "submitter_ip"
