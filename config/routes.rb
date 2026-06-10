@@ -108,7 +108,9 @@ Rails.application.routes.draw do
         patch :activate
       end
     end
-    resources :events
+    resources :events do
+      member { patch :publish }
+    end
     resources :bulletin_posts, only: [:index, :edit, :update, :destroy] do
       member do
         patch :approve
@@ -116,6 +118,18 @@ Rails.application.routes.draw do
     end
     # Admin-only AI "polish" for bulletin descriptions (summarize keeps the ≤160 cap).
     post "bulletin_posts/description/summarize", to: "bulletin_posts/descriptions#summarize", as: :bulletin_post_description_summarize
+
+    # AI Event Scout (2A): find real events via web search → review queue → promote.
+    resources :scouts, only: [:new, :create, :show] do
+      member { get :status }
+    end
+    resources :scout_candidates, only: [] do
+      member do
+        post :add_to_totem
+        post :add_to_bulletin
+        post :ignore
+      end
+    end
   end
 
   # Mobile API

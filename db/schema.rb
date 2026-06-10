@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_09_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_09_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -144,6 +144,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_000004) do
     t.index ["event_id"], name: "index_notification_deliveries_on_event_id"
     t.index ["user_id", "event_id", "notification_type"], name: "idx_on_user_id_event_id_notification_type_be0601ef91"
     t.index ["user_id"], name: "index_notification_deliveries_on_user_id"
+  end
+
+  create_table "scout_runs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "error"
+    t.bigint "requested_by_id", null: false
+    t.string "status", default: "pending", null: false
+    t.bigint "totem_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["requested_by_id"], name: "index_scout_runs_on_requested_by_id"
+    t.index ["totem_id"], name: "index_scout_runs_on_totem_id"
+  end
+
+  create_table "scouted_event_candidates", force: :cascade do |t|
+    t.bigint "bulletin_post_id"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "event_date"
+    t.bigint "event_id"
+    t.string "event_time"
+    t.boolean "ignored", default: false, null: false
+    t.string "location"
+    t.string "organizer"
+    t.bigint "scout_run_id", null: false
+    t.string "source_url"
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.index ["bulletin_post_id"], name: "index_scouted_event_candidates_on_bulletin_post_id"
+    t.index ["event_id"], name: "index_scouted_event_candidates_on_event_id"
+    t.index ["scout_run_id"], name: "index_scouted_event_candidates_on_scout_run_id"
   end
 
   create_table "solid_queue_blocked_executions", force: :cascade do |t|
@@ -341,6 +371,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_000004) do
   add_foreign_key "host_totem_assignments", "users", column: "host_user_id"
   add_foreign_key "notification_deliveries", "events"
   add_foreign_key "notification_deliveries", "users"
+  add_foreign_key "scout_runs", "totems"
+  add_foreign_key "scout_runs", "users", column: "requested_by_id"
+  add_foreign_key "scouted_event_candidates", "bulletin_posts"
+  add_foreign_key "scouted_event_candidates", "events"
+  add_foreign_key "scouted_event_candidates", "scout_runs"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

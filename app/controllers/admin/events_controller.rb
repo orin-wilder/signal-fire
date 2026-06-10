@@ -1,7 +1,7 @@
 class Admin::EventsController < Admin::ApplicationController
   include EventTimeAssembly
 
-  before_action :set_event, only: [:edit, :update, :destroy]
+  before_action :set_event, only: [:edit, :update, :destroy, :publish]
 
   def index
     @events = Event.includes(:totem, host_user: :host_profile).order(start_time: :desc)
@@ -60,6 +60,13 @@ class Admin::EventsController < Admin::ApplicationController
   def destroy
     @event.destroy
     redirect_to admin_events_path, notice: "Event deleted."
+  end
+
+  # One-click publish for pending_review (e.g. scouted) events — makes them live
+  # on the public board. This is the human approval gate for AI-sourced events.
+  def publish
+    @event.update!(approval_state: "published")
+    redirect_back fallback_location: admin_events_path, notice: "Published “#{@event.title}.”"
   end
 
   private

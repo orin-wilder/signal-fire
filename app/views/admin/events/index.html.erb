@@ -32,10 +32,13 @@
         <tbody class="divide-y divide-stone/10">
           <% @events.each do |event| %>
             <% status = event_display_status(event) %>
+            <% pending = event.approval_state_pending_review? %>
             <tr class="hover:bg-stone/5 transition">
               <td class="px-4 py-3">
                 <p class="font-medium text-ink"><%= event.title %></p>
-                <% if event.created_by_admin? %>
+                <% if event.provenance_scouted? %>
+                  <p class="text-xs text-stone/60">Found online · verify source</p>
+                <% elsif event.created_by_admin? %>
                   <p class="text-xs text-stone/60">Created by admin</p>
                 <% end %>
               </td>
@@ -47,20 +50,28 @@
               </td>
               <td class="px-4 py-3 text-stone"><%= event_when_label(event) %></td>
               <td class="px-4 py-3">
-                <% case status %>
-                <% when :live %>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">Live</span>
-                <% when :upcoming %>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-sky-100 text-sky-800">Upcoming</span>
-                <% when :cancelled %>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-ember/15 text-ember">Cancelled</span>
-                <% when :past %>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-stone/15 text-stone">Past</span>
+                <% if pending %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800">Pending review</span>
+                <% else %>
+                  <% case status %>
+                  <% when :live %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">Live</span>
+                  <% when :upcoming %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-sky-100 text-sky-800">Upcoming</span>
+                  <% when :cancelled %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-ember/15 text-ember">Cancelled</span>
+                  <% when :past %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-stone/15 text-stone">Past</span>
+                  <% end %>
                 <% end %>
               </td>
               <td class="px-4 py-3 text-right">
                 <div class="flex items-center justify-end gap-3">
-                  <% if status == :live || status == :upcoming %>
+                  <% if pending %>
+                    <%= button_to "Publish", publish_admin_event_path(event), method: :patch,
+                          class: "bg-ink text-paper text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-ink/90 transition" %>
+                    <%= link_to "Edit", edit_admin_event_path(event), class: "text-sm text-stone hover:text-ink transition" %>
+                  <% elsif status == :live || status == :upcoming %>
                     <%= link_to "Edit", edit_admin_event_path(event), class: "text-sm text-stone hover:text-ink transition" %>
                   <% else %>
                     <%= link_to "View", totem_event_path(event.totem.slug, event.slug), class: "text-sm text-stone hover:text-ink transition" %>

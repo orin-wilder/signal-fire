@@ -1,0 +1,108 @@
+<% content_for :title, "Scout · #{@run.totem.name} — Signal Fire Admin" %>
+
+<div class="max-w-5xl"
+     data-controller="scout-status"
+     data-scout-status-url-value="<%= status_admin_scout_path(@run) %>"
+     data-scout-status-state-value="<%= @run.status %>">
+
+  <p class="text-xs font-mono text-stone/50 uppercase tracking-widest mb-1">Admin · Internal</p>
+  <h1 class="font-serif text-3xl text-ink mb-1">Scout · <%= @run.totem.name %></h1>
+  <p class="text-stone text-sm mb-6">Found online via AI web search — verify the source before adding.</p>
+
+  <% if @run.pending? %>
+    <div class="bg-white border border-stone/20 rounded-xl px-6 py-14 text-center">
+      <p class="font-serif text-2xl text-ink mb-1">Searching for events near <%= @run.totem.name %>…</p>
+      <p class="text-stone text-sm">This takes a few seconds. The page refreshes automatically.</p>
+    </div>
+
+  <% elsif @run.failed? %>
+    <div class="bg-white border border-stone/20 rounded-xl px-6 py-12 text-center">
+      <p class="font-serif text-2xl text-ink mb-1">Scout couldn't complete.</p>
+      <p class="text-stone text-sm mb-4"><%= @run.error.presence || "Something went wrong." %></p>
+      <%= link_to "Try again", new_admin_scout_path,
+            class: "inline-block bg-ink text-paper font-semibold px-5 py-2.5 rounded-lg hover:bg-ink/90 transition" %>
+    </div>
+
+  <% elsif @candidates.empty? %>
+    <div class="bg-white border border-stone/20 rounded-xl px-6 py-12 text-center">
+      <p class="font-serif text-2xl text-ink mb-1">Nothing to review.</p>
+      <p class="text-stone text-sm mb-4">The search returned no usable events — try a different totem.</p>
+      <%= link_to "New scout", new_admin_scout_path, class: "text-sm text-stone hover:text-ink underline" %>
+    </div>
+
+  <% else %>
+    <div class="flex items-baseline justify-between mb-2">
+      <h2 class="font-serif text-2xl text-ink">Review</h2>
+      <span class="font-mono text-xs text-stone uppercase tracking-widest"><%= @candidates.size %> FOUND</span>
+    </div>
+
+    <div class="bg-white border border-stone/20 rounded-xl overflow-hidden overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-stone/20 text-left">
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Event</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">When</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Where · Source</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Add to board</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-stone/10">
+          <% @candidates.each do |c| %>
+            <tr class="hover:bg-stone/5 transition align-top">
+              <td class="px-4 py-3 max-w-[20rem]">
+                <p class="font-medium text-ink"><%= c.title %></p>
+                <% if c.description.present? %>
+                  <p class="text-xs text-stone mt-0.5 line-clamp-2"><%= c.description %></p>
+                <% end %>
+                <% if c.organizer.present? %>
+                  <p class="text-[11px] text-stone/60 mt-0.5">by <%= c.organizer %></p>
+                <% end %>
+              </td>
+              <td class="px-4 py-3 font-mono text-xs text-ink whitespace-nowrap">
+                <%= c.event_date %><% if c.event_time.present? %> · <%= c.event_time %><% end %>
+              </td>
+              <td class="px-4 py-3 text-stone max-w-[14rem]">
+                <p class="truncate"><%= c.location.presence || "—" %></p>
+                <% if c.source_url.present? %>
+                  <%= link_to "↗ source", c.source_url, target: "_blank", rel: "noopener noreferrer",
+                        class: "text-xs text-stone hover:text-ink underline" %>
+                <% end %>
+              </td>
+              <td class="px-4 py-3 text-right whitespace-nowrap">
+                <div class="flex flex-col items-end gap-1.5">
+                  <%# Totem %>
+                  <% if c.added_to_totem? %>
+                    <span class="text-xs text-stone">
+                      ✓ Totem (pending) ·
+                      <%= button_to "Publish", publish_admin_event_path(c.event), method: :patch,
+                            class: "inline text-xs text-ink underline hover:no-underline",
+                            form: { class: "inline" } %>
+                    </span>
+                  <% else %>
+                    <%= button_to "Add to Totem", add_to_totem_admin_scout_candidate_path(c), method: :post,
+                          class: "bg-ink text-paper text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-ink/90 transition" %>
+                  <% end %>
+
+                  <%# Bulletin %>
+                  <% if c.added_to_bulletin? %>
+                    <span class="text-xs text-stone">✓ Bulletin (pending)</span>
+                  <% else %>
+                    <%= button_to "Add to Bulletin", add_to_bulletin_admin_scout_candidate_path(c), method: :post,
+                          class: "border border-ink/30 text-ink text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-ink/5 transition" %>
+                  <% end %>
+
+                  <%= button_to "Ignore", ignore_admin_scout_candidate_path(c), method: :post,
+                        class: "text-xs text-stone hover:text-ink transition" %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="mt-4 text-xs text-stone/60 px-1">
+      Added events are <strong>pending review</strong> — they don't appear on public boards until published (totem) or approved (bulletin).
+    </p>
+  <% end %>
+</div>

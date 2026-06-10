@@ -43,6 +43,9 @@
         <%= link_to "Events", admin_events_path,
               class: "block px-3 py-2.5 rounded-lg text-sm font-medium transition #{request.path.start_with?('/admin/events') ? 'text-white bg-white/10' : 'text-stone/70 hover:text-white hover:bg-white/5'}",
               data: { action: "click->sidebar#close" } %>
+        <%= link_to "Scout Events", new_admin_scout_path,
+              class: "block px-3 py-2.5 rounded-lg text-sm font-medium transition #{request.path.start_with?('/admin/scouts') ? 'text-white bg-white/10' : 'text-stone/70 hover:text-white hover:bg-white/5'}",
+              data: { action: "click->sidebar#close" } %>
         <%= link_to "Bulletin Posts", admin_bulletin_posts_path,
               class: "block px-3 py-2.5 rounded-lg text-sm font-medium transition #{request.path.start_with?('/admin/bulletin_posts') ? 'text-white bg-white/10' : 'text-stone/70 hover:text-white hover:bg-white/5'}",
               data: { action: "click->sidebar#close" } %>
@@ -70,6 +73,8 @@
                 class: "block px-3 py-2 rounded-lg text-sm transition #{request.path.start_with?('/admin/hosts') ? 'text-white bg-white/10 font-medium' : 'text-stone/60 hover:text-white hover:bg-white/5'}" %>
           <%= link_to "Events", admin_events_path,
                 class: "block px-3 py-2 rounded-lg text-sm transition #{request.path.start_with?('/admin/events') ? 'text-white bg-white/10 font-medium' : 'text-stone/60 hover:text-white hover:bg-white/5'}" %>
+          <%= link_to "Scout Events", new_admin_scout_path,
+                class: "block px-3 py-2 rounded-lg text-sm transition #{request.path.start_with?('/admin/scouts') ? 'text-white bg-white/10 font-medium' : 'text-stone/60 hover:text-white hover:bg-white/5'}" %>
           <%= link_to "Bulletin Posts", admin_bulletin_posts_path,
                 class: "block px-3 py-2 rounded-lg text-sm transition #{request.path.start_with?('/admin/bulletin_posts') ? 'text-white bg-white/10 font-medium' : 'text-stone/60 hover:text-white hover:bg-white/5'}" %>
         </nav>

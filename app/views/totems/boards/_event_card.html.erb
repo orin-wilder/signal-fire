@@ -1,6 +1,7 @@
 <% state = event.window_state %>
 <% occurrence = event.next_occurrence %>
-<% host_name = event.host_user.host_profile&.display_name %>
+<%# Only genuine host events show a host name — scouted/AI events must not look host-verified. %>
+<% host_name = event.provenance_host? ? event.host_user.host_profile&.display_name : nil %>
 <%# Cards show the ≤160 short version; fall back to a trim of the full description. %>
 <% card_blurb = event.short_description.presence || event.description&.truncate(160) %>
 
