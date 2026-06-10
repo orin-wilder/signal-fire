@@ -10,7 +10,7 @@ class Api::V1::TotemsController < Api::V1::ApplicationController
 
     active_events = totem.events
       .includes(host_user: :host_profile)
-      .select { |e| e.active? }
+      .select { |e| e.active? && e.publicly_visible? }
 
     preload_user_event_data(active_events)
 

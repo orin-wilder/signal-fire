@@ -57,6 +57,9 @@ Rails.application.routes.draw do
     resources :events do
       member { patch :cancel, to: "events/cancellations#update" }
     end
+    # AI description assist (JSON, no persistence) — backs description_assist Stimulus controller.
+    post "events/description/enhance",   to: "events/descriptions#enhance",   as: :event_description_enhance
+    post "events/description/summarize", to: "events/descriptions#summarize", as: :event_description_summarize
     get   "profile",          to: "profiles#edit",             as: :profile
     patch "profile",          to: "profiles#update"
     get   "profile/password", to: "profiles/passwords#edit",   as: :profile_password

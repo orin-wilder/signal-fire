@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_08_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_09_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -59,6 +59,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_120001) do
   end
 
   create_table "events", force: :cascade do |t|
+    t.string "approval_state", default: "published", null: false
     t.string "chat_platform"
     t.string "chat_url"
     t.text "community_norms"
@@ -67,13 +68,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_120001) do
     t.text "description"
     t.datetime "end_time", null: false
     t.bigint "host_user_id", null: false
+    t.string "provenance", default: "host", null: false
     t.string "recurrence_rule"
+    t.string "short_description"
     t.string "slug", null: false
+    t.string "source_url"
     t.datetime "start_time", null: false
     t.string "status", default: "active", null: false
     t.string "title", null: false
     t.bigint "totem_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["approval_state"], name: "index_events_on_approval_state"
     t.index ["host_user_id"], name: "index_events_on_host_user_id"
     t.index ["slug"], name: "index_events_on_slug", unique: true
     t.index ["start_time"], name: "index_events_on_start_time"

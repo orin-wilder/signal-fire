@@ -60,6 +60,8 @@
     <% if @active_now.empty? && @upcoming.empty? %>
       <p class="text-center text-[#867a60] py-12 text-sm">No upcoming events right now.</p>
     <% end %>
+
+    <%= render "shared/nearby_carousel", events: @nearby, heading: "Other places nearby" %>
   </main>
 
   <footer class="px-4 pb-6 text-center text-xs text-[#867a60] space-x-3">

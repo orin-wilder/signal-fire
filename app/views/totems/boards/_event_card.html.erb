@@ -1,6 +1,8 @@
 <% state = event.window_state %>
 <% occurrence = event.next_occurrence %>
 <% host_name = event.host_user.host_profile&.display_name %>
+<%# Cards show the ≤160 short version; fall back to a trim of the full description. %>
+<% card_blurb = event.short_description.presence || event.description&.truncate(160) %>
 
 <% if active_now %>
   <%# Active-now card: div container with linked title and inline check-in form %>
@@ -31,8 +33,15 @@
       </div>
     </div>
 
-    <% if event.description.present? %>
-      <p class="mt-2 text-sm text-[#867a60] line-clamp-2"><%= event.description %></p>
+    <% if card_blurb.present? %>
+      <p class="mt-2 text-sm text-[#867a60] line-clamp-2"><%= card_blurb %></p>
+    <% end %>
+
+    <% if event.source_url.present? %>
+      <p class="mt-2">
+        <a href="<%= event.source_url %>" target="_blank" rel="noopener noreferrer"
+           class="text-xs text-[#867a60] hover:text-[#1a1a12]">↗ More info</a>
+      </p>
     <% end %>
 
     <div class="mt-3">
@@ -66,8 +75,15 @@
       <span class="text-[#867a60] shrink-0 text-lg leading-none">›</span>
     </div>
 
-    <% if event.description.present? %>
-      <p class="mt-2 text-sm text-[#867a60] line-clamp-2"><%= event.description %></p>
+    <% if card_blurb.present? %>
+      <p class="mt-2 text-sm text-[#867a60] line-clamp-2"><%= card_blurb %></p>
     <% end %>
+  <% end %>
+
+  <% if event.source_url.present? %>
+    <p class="mt-1 px-1">
+      <a href="<%= event.source_url %>" target="_blank" rel="noopener noreferrer"
+         class="text-xs text-[#867a60] hover:text-[#1a1a12]">↗ More info</a>
+    </p>
   <% end %>
 <% end %>

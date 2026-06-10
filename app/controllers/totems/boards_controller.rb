@@ -24,6 +24,7 @@ class Totems::BoardsController < ApplicationController
       @host       = @totem.primary_host
       @favorite   = current_user && TotemFavorite.find_by(user: current_user, totem: @totem)
       @footer_dismissed = cookies[:footer_dismissed]
+      @nearby     = Event.nearby_upcoming(city_slug: @totem.city_slug, excluding_totem_id: @totem.id)
     end
   end
 end

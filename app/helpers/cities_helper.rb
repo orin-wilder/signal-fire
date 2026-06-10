@@ -5,7 +5,7 @@ module CitiesHelper
     window_end   = now + Event::CHECKIN_WINDOW_BEFORE_MINUTES.minutes
 
     totem.events
-      .select { |e| e.active? && e.start_time <= window_end && e.end_time >= window_start }
+      .select { |e| e.active? && e.publicly_visible? && e.start_time <= window_end && e.end_time >= window_start }
       .min_by { |e| e.start_time <= now && e.end_time >= now ? 0 : 1 }
   end
 
@@ -15,7 +15,7 @@ module CitiesHelper
     threshold = now + Event::CHECKIN_WINDOW_BEFORE_MINUTES.minutes
 
     totem.events
-      .select { |e| e.active? && !city_board_active?(e, now) }
+      .select { |e| e.active? && e.publicly_visible? && !city_board_active?(e, now) }
       .select { |e| e.next_occurrence > threshold && e.next_occurrence <= week_end }
       .sort_by(&:next_occurrence)
   end

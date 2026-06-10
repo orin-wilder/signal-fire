@@ -21,10 +21,10 @@ class Totem < ApplicationRecord
   def board_empty?
     return true unless active
 
-    has_upcoming = events.active.where.not(recurrence_rule: nil).exists? ||
-                   events.active.where(recurrence_rule: nil).where("start_time > ?", Time.current).exists?
+    has_upcoming = events.active.publicly_visible.where.not(recurrence_rule: nil).exists? ||
+                   events.active.publicly_visible.where(recurrence_rule: nil).where("start_time > ?", Time.current).exists?
 
-    has_recent = events.active.where("end_time > ? AND end_time < ?", 30.days.ago, Time.current).exists?
+    has_recent = events.active.publicly_visible.where("end_time > ? AND end_time < ?", 30.days.ago, Time.current).exists?
 
     !has_upcoming && !has_recent
   end
@@ -40,7 +40,7 @@ class Totem < ApplicationRecord
     window_start = now - Event::CHECKIN_WINDOW_AFTER_MINUTES.minutes
     window_end   = now + Event::CHECKIN_WINDOW_BEFORE_MINUTES.minutes
 
-    events.active
+    events.active.publicly_visible
           .includes(host_user: :host_profile)
           .where("start_time <= ? AND end_time >= ?", window_end, window_start)
           .sort_by { |e|
@@ -56,7 +56,7 @@ class Totem < ApplicationRecord
 
   def upcoming_events
     window_end = Time.current + Event::CHECKIN_WINDOW_BEFORE_MINUTES.minutes
-    events.active.includes(host_user: :host_profile).reject(&:active_now?).select { |e| e.next_occurrence > window_end }.sort_by(&:next_occurrence)
+    events.active.publicly_visible.includes(host_user: :host_profile).reject(&:active_now?).select { |e| e.next_occurrence > window_end }.sort_by(&:next_occurrence)
   end
 
   private

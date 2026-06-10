@@ -88,7 +88,7 @@ class Admin::EventsController < Admin::ApplicationController
       :title, :totem_id, :recurrence_rule,
       :start_day_of_week, :start_date, :start_time_of_day, :end_time_of_day,
       :description, :community_norms,
-      :chat_platform, :chat_url
+      :chat_platform, :chat_url, :source_url
     )
     assemble_times(raw)
   end

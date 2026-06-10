@@ -158,6 +158,13 @@
         <%= f.url_field :chat_url, placeholder: "https://...", class: field_class %>
       </div>
 
+      <%# Optional source link (1D) %>
+      <div>
+        <%= f.label :source_url, "Add a link (optional)", class: label_class %>
+        <p class="text-xs text-stone mb-1">A page with more info. Shown as a small “More info” link on the board.</p>
+        <%= f.url_field :source_url, placeholder: "https://...", class: field_class %>
+      </div>
+
       <div class="bg-stone/5 border border-stone/20 rounded-xl p-4 text-sm text-stone">
         <p class="font-medium text-ink mb-1">Admin override.</p>
         <p>This event will show the selected host's name publicly. The admin-created flag is stored in DB for reporting only.</p>

@@ -18,6 +18,35 @@ class Event < ApplicationRecord
   }
   enum :status, { active: "active", cancelled: "cancelled" }
 
+  # provenance/approval_state are prefixed to avoid clobbering the status enum's
+  # bare active?/cancelled? predicates and to read clearly at call sites.
+  enum :provenance, {
+    host: "host",
+    admin: "admin",
+    scouted: "scouted",
+    board_submission: "board_submission"
+  }, prefix: true
+  enum :approval_state, { published: "published", pending_review: "pending_review" }, prefix: true
+
+  # The single public-visibility gate. Threaded through every public read path
+  # so unverified/pending content never reaches a QR/board surface.
+  scope :publicly_visible, -> { where(approval_state: "published") }
+
+  # Upcoming events at OTHER totems in the same city, soonest first. next_occurrence
+  # is computed in Ruby (IceCube), so narrow in SQL then sort/limit in Ruby — same
+  # shape as Totem#upcoming_events. Honors the publicly_visible gate.
+  def self.nearby_upcoming(city_slug:, excluding_totem_id: nil, limit: 8, within: 7.days)
+    now = Time.current
+    scope = active.publicly_visible
+              .joins(:totem).merge(Totem.active.for_city(city_slug))
+              .includes(:totem, host_user: :host_profile)
+    scope = scope.where.not(totem_id: excluding_totem_id) if excluding_totem_id
+
+    scope.select { |e| (now...(now + within)).cover?(e.next_occurrence) }
+         .sort_by(&:next_occurrence)
+         .first(limit)
+  end
+
   validates :title, presence: true
   validates :slug, presence: true, uniqueness: true
   validates :recurrence_rule, format: {
@@ -27,6 +56,9 @@ class Event < ApplicationRecord
   validates :start_time, presence: true
   validates :end_time, presence: true
   validates :status, presence: true
+  validates :source_url, allow_blank: true,
+    format: { with: %r{\Ahttps?://}i, message: "must start with http:// or https://" }
+  validates :short_description, length: { maximum: 160 }, allow_blank: true
   validate :end_time_after_start_time
 
   before_validation :generate_slug, if: -> { slug.blank? && title.present? }
@@ -53,6 +85,8 @@ class Event < ApplicationRecord
     else                                :past
     end
   end
+
+  def publicly_visible? = approval_state_published?
 
   def one_time?  = recurrence_rule.blank?
   def recurring? = recurrence_rule.present?
@@ -84,6 +118,11 @@ class Event < ApplicationRecord
   private
 
   def enqueue_new_event_jobs
+    # Only published, host-authored events notify followers/favorites. This keeps
+    # admin-curated and AI-sourced (scouted/pending) events out of the push
+    # fan-out entirely — no low-content or unverified-content notifications.
+    return unless approval_state_published? && provenance_host?
+
     NewEventNotificationJob.perform_later(id)
     fire_at = next_occurrence - 1.hour
     PreEventReminderJob.set(wait_until: fire_at).perform_later(id)

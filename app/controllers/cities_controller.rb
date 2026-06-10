@@ -10,6 +10,7 @@ class CitiesController < ApplicationController
         events: :anonymous_check_in_count
       )
       .order(:name)
+    @nearby = Event.nearby_upcoming(city_slug: @city_slug, excluding_totem_id: nil)
     AnalyticsService.track("city_board_viewed", city_slug: @city_slug)
   end
 end

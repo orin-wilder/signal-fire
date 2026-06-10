@@ -232,13 +232,42 @@
         </div>
       </div>
 
-      <%# Description %>
-      <div>
+      <%# Description + AI assist (stone/ink utility — never ember) %>
+      <div data-controller="description-assist"
+           data-description-assist-enhance-url-value="<%= host_event_description_enhance_path %>"
+           data-description-assist-summarize-url-value="<%= host_event_description_summarize_path %>">
         <%= f.label :description, "Description", class: label_class %>
         <%= f.text_area :description,
-              rows: 3,
+              rows: 4,
               placeholder: "Come as you are. We dance for ninety minutes.",
+              data: { "description-assist-target": "description" },
               class: "#{field_class} resize-y" %>
+
+        <div class="flex flex-wrap items-center gap-2 mt-2">
+          <button type="button"
+                  data-description-assist-target="enhanceBtn"
+                  data-action="description-assist#enhance"
+                  class="text-sm px-3 py-1.5 border border-stone/40 rounded-lg text-ink hover:bg-stone/5 transition cursor-pointer disabled:opacity-50">
+            Enhance description
+          </button>
+          <button type="button"
+                  data-description-assist-target="summarizeBtn"
+                  data-action="description-assist#summarize"
+                  class="text-sm px-3 py-1.5 border border-stone/40 rounded-lg text-ink hover:bg-stone/5 transition cursor-pointer disabled:opacity-50">
+            Create short version
+          </button>
+          <span data-description-assist-target="status" role="status" aria-live="polite" class="text-xs text-stone"></span>
+        </div>
+
+        <div class="mt-4">
+          <%= f.label :short_description, "Short version", class: label_class %>
+          <p class="text-xs text-stone mb-1">Up to 160 characters — shown on board cards. Falls back to a trim of the description if blank.</p>
+          <%= f.text_field :short_description,
+                maxlength: 160,
+                placeholder: "One-line summary for cards",
+                data: { "description-assist-target": "short" },
+                class: field_class %>
+        </div>
       </div>
 
       <%# Community norms %>
@@ -258,6 +287,13 @@
       <div>
         <%= f.label :chat_url, "Group chat URL", class: label_class %>
         <%= f.url_field :chat_url, placeholder: "https://...", class: field_class %>
+      </div>
+
+      <%# Optional source link (1D) %>
+      <div>
+        <%= f.label :source_url, "Add a link (optional)", class: label_class %>
+        <p class="text-xs text-stone mb-1">A page with more info. Shown as a small “More info” link on the board.</p>
+        <%= f.url_field :source_url, placeholder: "https://...", class: field_class %>
       </div>
     </div>
   </div>
