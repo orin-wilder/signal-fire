@@ -1,0 +1,37 @@
+<% content_for :title, "Totem Admin — Signal Fire" %>
+
+<div class="mb-6 flex items-start justify-between gap-4">
+  <div>
+    <p class="text-xs font-mono text-stone/50 uppercase tracking-widest mb-1">Totem Admin</p>
+    <h1 class="font-serif text-3xl text-ink">Your totems.</h1>
+    <p class="text-stone text-sm mt-1">The community spaces you moderate.</p>
+  </div>
+  <%= link_to "Invite a host", new_totem_admin_totem_assignment_path,
+        class: "bg-ember text-white font-semibold text-sm px-4 py-2 rounded-lg hover:bg-ember/90 transition shrink-0" %>
+</div>
+
+<% if @totems.any? %>
+  <div class="space-y-3">
+    <% @totems.each do |totem| %>
+      <div class="bg-white/60 border border-stone/20 rounded-xl px-5 py-4">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="font-medium text-ink"><%= totem.name %></p>
+            <% if totem.location.present? %>
+              <p class="text-sm text-stone mt-0.5">
+                <%= totem.location %><%= totem.sublocation.present? ? " · #{totem.sublocation}" : "" %>
+              </p>
+            <% end %>
+          </div>
+          <span class="font-mono text-[10px] uppercase tracking-widest text-stone/50 border border-stone/20 px-2 py-1 rounded shrink-0">
+            <%= totem.slug %>
+          </span>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="border border-dashed border-stone/30 rounded-xl p-10 text-center">
+    <p class="text-stone text-sm">You don't moderate any totems yet.</p>
+  </div>
+<% end %>

@@ -24,6 +24,16 @@ invited_host_user:
   is_admin: false
   notification_prefs: '{"new_event": true, "reminder": true}'
 
+# Totem admin: a non-host user (no host_profile) who moderates main_totem.
+totem_admin_user:
+  email: totemadmin@example.com
+  password_digest: <%= BCrypt::Password.create("password123") %>
+  name: Totem Admin User
+  auth_method: email
+  is_host: false
+  is_admin: false
+  notification_prefs: '{"new_event": true, "reminder": true}'
+
 admin_user:
   email: admin@example.com
   password_digest: <%= BCrypt::Password.create("password123") %>

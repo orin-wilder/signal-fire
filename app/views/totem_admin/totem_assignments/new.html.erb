@@ -1,0 +1,39 @@
+<% content_for :title, "Invite a host — Signal Fire" %>
+
+<div class="max-w-lg">
+  <p class="text-xs font-mono text-stone/50 uppercase tracking-widest mb-1">Totem Admin</p>
+  <h1 class="font-serif text-3xl text-ink mb-6">Invite a host.</h1>
+
+  <%
+    field_class = "w-full px-3 py-2 bg-white border border-stone/40 rounded-lg text-ink focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember transition text-sm"
+    label_class = "block text-sm font-medium text-ink mb-1"
+  %>
+
+  <%= form_with url: totem_admin_totem_assignments_path, method: :post, class: "space-y-5" do %>
+    <div>
+      <label for="totem_id" class="<%= label_class %>">Totem</label>
+      <select name="totem_id" id="totem_id" required class="<%= field_class %>">
+        <% @totems.each do |totem| %>
+          <option value="<%= totem.id %>"><%= totem.name %> · <%= totem.location %></option>
+        <% end %>
+      </select>
+    </div>
+
+    <div>
+      <label for="name" class="<%= label_class %>">Host name</label>
+      <input type="text" name="name" id="name" required class="<%= field_class %>">
+    </div>
+
+    <div>
+      <label for="email" class="<%= label_class %>">Host email</label>
+      <input type="email" name="email" id="email" required class="<%= field_class %>">
+      <p class="text-xs text-stone/50 mt-1">New accounts get an invite email; existing users are added directly.</p>
+    </div>
+
+    <div class="flex items-center gap-3 pt-2 border-t border-stone/20">
+      <%= submit_tag "Invite host",
+            class: "bg-ember text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-ember/90 active:scale-[0.98] transition cursor-pointer" %>
+      <%= link_to "Cancel", totem_admin_totems_path, class: "text-sm text-stone hover:text-ink transition" %>
+    </div>
+  <% end %>
+</div>

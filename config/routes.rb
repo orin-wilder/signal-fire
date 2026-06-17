@@ -94,8 +94,15 @@ Rails.application.routes.draw do
     delete "logout", to: "auth/admin/sessions#destroy", as: :logout
   end
 
+  # Totem admin console (delegated per-totem moderation + host management)
+  namespace :totem_admin do
+    resources :totems, only: [:index]
+    resources :totem_assignments, only: [:new, :create]
+  end
+
   # Admin console
   namespace :admin do
+    resources :totem_assignments, only: [:new, :create]
     resources :totems do
       member do
         get :qr

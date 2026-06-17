@@ -39,17 +39,28 @@
           <%# Hidden field so an empty selection submits totem_ids: [] %>
           <input type="hidden" name="host[totem_ids][]" value="">
           <% @all_totems.each do |totem| %>
-            <label class="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox"
-                     name="host[totem_ids][]"
-                     value="<%= totem.id %>"
-                     <%= "checked" if @assigned_totem_ids.include?(totem.id) %>
-                     class="rounded border-stone/40 text-ember focus:ring-ember">
-              <span class="text-sm text-ink">
-                <%= totem.name %>
-                <span class="text-stone">· <%= totem.location %><%= totem.sublocation.present? ? " · #{totem.sublocation}" : "" %></span>
-              </span>
-            </label>
+            <div class="flex items-center justify-between gap-3">
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox"
+                       name="host[totem_ids][]"
+                       value="<%= totem.id %>"
+                       <%= "checked" if @assigned_totem_ids.include?(totem.id) %>
+                       class="rounded border-stone/40 text-ember focus:ring-ember">
+                <span class="text-sm text-ink">
+                  <%= totem.name %>
+                  <span class="text-stone">· <%= totem.location %><%= totem.sublocation.present? ? " · #{totem.sublocation}" : "" %></span>
+                </span>
+              </label>
+              <select name="host[totem_roles][<%= totem.id %>]"
+                      class="text-xs border border-stone/40 rounded-lg px-2 py-1 bg-white text-ink focus:outline-none focus:border-ember">
+                <% HostTotemAssignment.roles.each_key do |role| %>
+                  <option value="<%= role %>"
+                    <%= "selected" if (@assigned_roles[totem.id] || "host") == role %>>
+                    <%= role.humanize %>
+                  </option>
+                <% end %>
+              </select>
+            </div>
           <% end %>
         </div>
       <% else %>

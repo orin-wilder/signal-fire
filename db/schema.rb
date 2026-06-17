@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_09_000006) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_17_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -124,6 +124,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_000006) do
     t.bigint "assigned_by_admin_id"
     t.datetime "created_at", null: false
     t.bigint "host_user_id", null: false
+    t.string "role", default: "host", null: false
     t.bigint "totem_id", null: false
     t.datetime "updated_at", null: false
     t.index ["host_user_id", "totem_id"], name: "index_host_totem_assignments_on_host_user_id_and_totem_id", unique: true
@@ -347,7 +348,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_000006) do
     t.string "magic_link_token"
     t.datetime "magic_link_token_expires_at"
     t.string "name"
-    t.jsonb "notification_prefs", default: {"all" => true, "reminder" => true, "new_event" => true}, null: false
+    t.jsonb "notification_prefs", default: {"all"=>true, "reminder"=>true, "new_event"=>true}, null: false
     t.string "password_digest"
     t.string "push_token"
     t.datetime "updated_at", null: false
