@@ -7,3 +7,10 @@ co_host_main_assignment:
   host_user: co_host_user
   totem: main_totem
   assigned_at: <%= 7.days.ago %>
+
+# Non-host user moderating main_totem (decoupled from host_profile).
+totem_admin_main_assignment:
+  host_user: totem_admin_user
+  totem: main_totem
+  role: totem_admin
+  assigned_at: <%= 7.days.ago %>

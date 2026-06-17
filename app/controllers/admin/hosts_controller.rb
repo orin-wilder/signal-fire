@@ -24,8 +24,9 @@ class Admin::HostsController < Admin::ApplicationController
   end
 
   def edit
-    @all_totems      = Totem.order(:location, :name)
+    @all_totems         = Totem.order(:location, :name)
     @assigned_totem_ids = @host.host_totem_assignments.pluck(:totem_id)
+    @assigned_roles     = @host.host_totem_assignments.pluck(:totem_id, :role).to_h
   end
 
   def update
@@ -39,13 +40,14 @@ class Admin::HostsController < Admin::ApplicationController
     ActiveRecord::Base.transaction do
       @host.save!
       @host.host_profile.save!
-      sync_totem_assignments(selected_ids)
+      sync_totem_assignments(selected_ids, host_params[:totem_roles])
     end
 
     redirect_to admin_hosts_path, notice: "Host updated."
   rescue ActiveRecord::RecordInvalid => e
     @all_totems         = Totem.order(:location, :name)
     @assigned_totem_ids = @host.host_totem_assignments.pluck(:totem_id)
+    @assigned_roles     = @host.host_totem_assignments.pluck(:totem_id, :role).to_h
     flash.now[:alert]   = e.record.errors.full_messages.to_sentence
     render :edit, status: :unprocessable_entity
   end
@@ -79,20 +81,29 @@ class Admin::HostsController < Admin::ApplicationController
   end
 
   def host_params
-    params.require(:host).permit(:name, :email, :host_story, totem_ids: [])
+    params.require(:host).permit(:name, :email, :host_story, totem_ids: [], totem_roles: {})
   end
 
-  def sync_totem_assignments(totem_ids)
-    current_ids = @host.host_totem_assignments.pluck(:totem_id)
+  # Upsert an assignment (with per-totem role) for each selected totem; destroy deselected.
+  def sync_totem_assignments(totem_ids, totem_roles = {})
+    roles       = (totem_roles || {}).to_h
+    current     = @host.host_totem_assignments.index_by(&:totem_id)
 
-    (totem_ids - current_ids).each do |tid|
-      @host.host_totem_assignments.create!(
-        totem_id:             tid,
-        assigned_by_admin_id: current_user.id,
-        assigned_at:          Time.current
-      )
+    totem_ids.each do |tid|
+      role = roles[tid.to_s].presence_in(HostTotemAssignment.roles.keys) || "host"
+
+      if (assignment = current[tid])
+        assignment.update!(role: role)
+      else
+        @host.host_totem_assignments.create!(
+          totem_id:             tid,
+          role:                 role,
+          assigned_by_admin_id: current_user.id,
+          assigned_at:          Time.current
+        )
+      end
     end
 
-    @host.host_totem_assignments.where(totem_id: current_ids - totem_ids).destroy_all
+    @host.host_totem_assignments.where(totem_id: current.keys - totem_ids).destroy_all
   end
 end

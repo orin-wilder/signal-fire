@@ -158,6 +158,35 @@ class Admin::HostsControllerTest < ActionDispatch::IntegrationTest
     assert_empty @host.reload.assigned_totems
   end
 
+  test "PATCH /admin/hosts/:id assigns a per-totem role" do
+    sign_in_as_admin
+    patch admin_host_path(@host), params: {
+      host: { name: @host.name, email: @host.email,
+              totem_ids: [@secondary.id],
+              totem_roles: { @secondary.id.to_s => "totem_admin" } }
+    }
+    assert_redirected_to admin_hosts_path
+    assignment = HostTotemAssignment.find_by!(host_user_id: @host.id, totem_id: @secondary.id)
+    assert assignment.role_totem_admin?
+  end
+
+  test "PATCH /admin/hosts/:id defaults role to host when unspecified" do
+    sign_in_as_admin
+    patch admin_host_path(@host), params: {
+      host: { name: @host.name, email: @host.email, totem_ids: [@secondary.id] }
+    }
+    assert_redirected_to admin_hosts_path
+    assignment = HostTotemAssignment.find_by!(host_user_id: @host.id, totem_id: @secondary.id)
+    assert assignment.role_host?
+  end
+
+  test "GET /admin/hosts/:id/edit renders a role select per totem" do
+    sign_in_as_admin
+    get edit_admin_host_path(@host)
+    assert_response :success
+    assert_select "select[name='host[totem_roles][#{@secondary.id}]']"
+  end
+
   # ── Destroy ───────────────────────────────────────────────────────────────
 
   test "DELETE /admin/hosts/:id destroys host with no events" do
