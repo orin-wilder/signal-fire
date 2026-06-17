@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_17_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_17_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -68,8 +68,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_000001) do
     t.datetime "created_at", null: false
     t.boolean "created_by_admin", default: false, null: false
     t.text "description"
-    t.datetime "end_time", null: false
-    t.bigint "host_user_id", null: false
+    t.datetime "end_time"
+    t.bigint "host_user_id"
     t.string "provenance", default: "host", null: false
     t.string "recurrence_rule"
     t.string "short_description"
@@ -77,6 +77,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_000001) do
     t.string "source_url"
     t.datetime "start_time", null: false
     t.string "status", default: "active", null: false
+    t.string "submitter_email"
+    t.string "submitter_ip"
     t.string "title", null: false
     t.bigint "totem_id", null: false
     t.datetime "updated_at", null: false
@@ -348,7 +350,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_000001) do
     t.string "magic_link_token"
     t.datetime "magic_link_token_expires_at"
     t.string "name"
-    t.jsonb "notification_prefs", default: {"all"=>true, "reminder"=>true, "new_event"=>true}, null: false
+    t.jsonb "notification_prefs", default: {"all" => true, "reminder" => true, "new_event" => true}, null: false
     t.string "password_digest"
     t.string "push_token"
     t.datetime "updated_at", null: false
