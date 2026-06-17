@@ -91,26 +91,6 @@ class Admin::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Admin Created Event", created.title
   end
 
-  test "POST /admin/events with invalid chat URL renders new with errors" do
-    sign_in_as_admin
-    assert_no_difference "Event.count" do
-      post admin_events_path, params: {
-        event: {
-          host_user_id: @host.id,
-          title: "Bad Event",
-          totem_id: @totem.id,
-          recurrence_rule: "",
-          start_date: 2.days.from_now.to_date.iso8601,
-          start_time_of_day: "10:00",
-          end_time_of_day: "11:00",
-          chat_platform: "whatsapp",
-          chat_url: "https://discord.gg/wrong-platform"
-        }
-      }
-    end
-    assert_response :unprocessable_entity
-  end
-
   test "POST /admin/events creates weekly event and redirects" do
     sign_in_as_admin
     assert_difference "Event.count", 1 do

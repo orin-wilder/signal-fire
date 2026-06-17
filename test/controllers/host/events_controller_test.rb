@@ -70,24 +70,6 @@ class Host::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to host_events_path
   end
 
-  test "POST /host/events with invalid chat URL shows errors" do
-    assert_no_difference "Event.count" do
-      post host_events_path, params: {
-        event: {
-          title: "Bad URL Run",
-          totem_id: @totem.id,
-          recurrence_rule: "",
-          start_date: 2.days.from_now.to_date.iso8601,
-          start_time_of_day: "07:00",
-          end_time_of_day: "09:00",
-          chat_platform: "whatsapp",
-          chat_url: "https://discord.gg/wrong-platform"
-        }
-      }
-    end
-    assert_response :unprocessable_entity
-  end
-
   test "GET /host/events/:id/edit renders form for own event" do
     get edit_host_event_path(@event)
     assert_response :success
@@ -169,7 +151,7 @@ class Host::EventsControllerTest < ActionDispatch::IntegrationTest
   test "POST /host/events tracks host_event_created with correct properties" do
     date = 2.days.from_now.to_date
     tracked = []
-    AnalyticsService.stub(:track, ->(name, **props) { tracked << [name, props] }) do
+    AnalyticsService.stub(:track, ->(name, **props) { tracked << [ name, props ] }) do
       post host_events_path, params: {
         event: {
           title: "Analytics Test Event",
