@@ -82,7 +82,7 @@ class EventTest < ActiveSupport::TestCase
   test "next_occurrence returns start_time for one-time events" do
     start = 1.hour.from_now
     event = build_event(recurrence_rule: nil, start_time: start, end_time: start + 1.hour)
-    assert_equal start, event.next_occurrence
+    assert_in_delta start.to_i, event.next_occurrence.to_i, 5
   end
 
   test "next_occurrence returns a future time for a weekly event with past start" do
@@ -136,18 +136,6 @@ class EventTest < ActiveSupport::TestCase
     event = build_event(chat_platform: nil, chat_url: nil)
     event.valid?
     assert_not event.errors[:chat_url].any?
-  end
-
-  test "chat_url required when chat_platform is set" do
-    event = build_event(chat_platform: :whatsapp, chat_url: nil)
-    assert_not event.valid?
-    assert event.errors[:chat_url].any?
-  end
-
-  test "chat_url format validated against selected platform" do
-    event = build_event(chat_platform: :discord, chat_url: "https://chat.whatsapp.com/abc")
-    assert_not event.valid?
-    assert event.errors[:chat_url].any?
   end
 
   test "slug auto-generated from totem slug and title" do

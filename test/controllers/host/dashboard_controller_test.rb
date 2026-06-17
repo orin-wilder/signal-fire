@@ -21,7 +21,7 @@ class Host::DashboardControllerTest < ActionDispatch::IntegrationTest
     get host_dashboard_path
     assert_response :success
     assert_select "h1", text: /morning|afternoon|evening/i
-    assert_select "table"
+    assert_select "div.divide-y"
     assert_match "Co-host Event", response.body
   end
 
