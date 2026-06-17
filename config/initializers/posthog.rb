@@ -1,6 +1,9 @@
-unless Rails.env.test?
+# Only initialize PostHog when a project token is configured. This keeps local
+# development, migrations, and CI from crashing ("API key must be initialized")
+# when no token is present — analytics are simply disabled.
+if (posthog_token = ENV["POSTHOG_PROJECT_TOKEN"]).present?
   PostHog.init do |config|
-    config.api_key = ENV.fetch("POSTHOG_PROJECT_TOKEN", nil)
+    config.api_key = posthog_token
     config.host = ENV.fetch("POSTHOG_HOST", 'https://us.i.posthog.com')
     config.on_error = proc { |status, msg| Rails.logger.error("PostHog error: #{msg}") }
   end
