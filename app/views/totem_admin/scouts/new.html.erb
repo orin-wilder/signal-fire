@@ -1,0 +1,27 @@
+<% content_for :title, "Find events — Signal Fire" %>
+
+<div class="max-w-lg">
+  <p class="text-xs font-mono text-stone/50 uppercase tracking-widest mb-1">Totem Admin</p>
+  <h1 class="font-serif text-3xl text-ink mb-2">Find events with AI.</h1>
+  <p class="text-stone text-sm mb-6">
+    Search for real, upcoming public events near a totem you moderate. Results are
+    <strong>unverified</strong> — open the source to check each one. Anything you add
+    stays off the public board until you publish it.
+  </p>
+
+  <%= form_with url: totem_admin_scouts_path, method: :post, class: "space-y-4" do %>
+    <div>
+      <label for="totem_id" class="block text-sm font-medium text-ink mb-1">Totem</label>
+      <select name="totem_id" id="totem_id" required
+              class="w-full px-3 py-2 bg-white border border-stone/30 rounded-lg text-ink text-sm focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember transition">
+        <option value="">Select a totem</option>
+        <% @totems.each do |totem| %>
+          <option value="<%= totem.id %>" <%= "selected" if params[:totem_id].to_s == totem.id.to_s %>><%= totem.name %></option>
+        <% end %>
+      </select>
+    </div>
+
+    <%= submit_tag "Find events",
+          class: "bg-ember text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-ember/90 transition cursor-pointer" %>
+  <% end %>
+</div>

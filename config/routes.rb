@@ -103,6 +103,15 @@ Rails.application.routes.draw do
     resources :events, only: [:index, :edit, :update, :destroy] do
       member { patch :publish }
     end
+    resources :scouts, only: [:new, :create, :show] do
+      member { get :status }
+    end
+    resources :scout_candidates, only: [] do
+      member do
+        post :add_to_totem
+        post :ignore
+      end
+    end
   end
 
   # Admin console
