@@ -1,0 +1,12 @@
+<%# locals: totem, event %>
+<div class="text-center py-6">
+  <% if event.approval_state_published? %>
+    <h2 class="font-serif text-xl text-ink mb-2">It's on the board.</h2>
+    <p class="text-stone text-sm mb-4">Your event is live for everyone who scans this totem.</p>
+  <% else %>
+    <h2 class="font-serif text-xl text-ink mb-2">Thanks — we'll take a look.</h2>
+    <p class="text-stone text-sm mb-4">If it's a fit, it'll show up on the board shortly. Nothing else needed from you.</p>
+  <% end %>
+  <%= link_to "Add another", totem_board_path(totem.slug),
+        class: "text-ember font-medium text-sm hover:underline" %>
+</div>

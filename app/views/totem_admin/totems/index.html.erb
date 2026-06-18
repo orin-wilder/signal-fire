@@ -6,8 +6,12 @@
     <h1 class="font-serif text-3xl text-ink">Your totems.</h1>
     <p class="text-stone text-sm mt-1">The community spaces you moderate.</p>
   </div>
-  <%= link_to "Invite a host", new_totem_admin_totem_assignment_path,
-        class: "bg-ember text-white font-semibold text-sm px-4 py-2 rounded-lg hover:bg-ember/90 transition shrink-0" %>
+  <div class="flex items-center gap-2 shrink-0">
+    <%= link_to "Review queue", totem_admin_events_path,
+          class: "border border-stone/30 text-ink font-semibold text-sm px-4 py-2 rounded-lg hover:border-ink transition" %>
+    <%= link_to "Invite a host", new_totem_admin_totem_assignment_path,
+          class: "bg-ember text-white font-semibold text-sm px-4 py-2 rounded-lg hover:bg-ember/90 transition" %>
+  </div>
 </div>
 
 <% if @totems.any? %>
