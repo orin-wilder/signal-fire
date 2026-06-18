@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_17_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_18_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -20,24 +20,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_000003) do
     t.bigint "event_id", null: false
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_anonymous_check_in_counts_on_event_id", unique: true
-  end
-
-  create_table "bulletin_posts", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "description", null: false
-    t.string "recurrence_cadence"
-    t.boolean "recurring", default: false, null: false
-    t.string "source", default: "public_submission", null: false
-    t.string "source_url"
-    t.datetime "starts_at", null: false
-    t.string "status", default: "pending", null: false
-    t.string "submitter_ip"
-    t.string "title", null: false
-    t.bigint "totem_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["starts_at"], name: "index_bulletin_posts_on_starts_at"
-    t.index ["status"], name: "index_bulletin_posts_on_status"
-    t.index ["totem_id"], name: "index_bulletin_posts_on_totem_id"
   end
 
   create_table "check_ins", force: :cascade do |t|
@@ -161,7 +143,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_000003) do
   end
 
   create_table "scouted_event_candidates", force: :cascade do |t|
-    t.bigint "bulletin_post_id"
     t.datetime "created_at", null: false
     t.text "description"
     t.string "event_date"
@@ -174,7 +155,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_000003) do
     t.string "source_url"
     t.string "title"
     t.datetime "updated_at", null: false
-    t.index ["bulletin_post_id"], name: "index_scouted_event_candidates_on_bulletin_post_id"
     t.index ["event_id"], name: "index_scouted_event_candidates_on_event_id"
     t.index ["scout_run_id"], name: "index_scouted_event_candidates_on_scout_run_id"
   end
@@ -360,7 +340,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_000003) do
   end
 
   add_foreign_key "anonymous_check_in_counts", "events"
-  add_foreign_key "bulletin_posts", "totems"
   add_foreign_key "check_ins", "events"
   add_foreign_key "check_ins", "users"
   add_foreign_key "empty_totem_email_captures", "totems"
@@ -376,7 +355,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_000003) do
   add_foreign_key "notification_deliveries", "users"
   add_foreign_key "scout_runs", "totems"
   add_foreign_key "scout_runs", "users", column: "requested_by_id"
-  add_foreign_key "scouted_event_candidates", "bulletin_posts"
   add_foreign_key "scouted_event_candidates", "events"
   add_foreign_key "scouted_event_candidates", "scout_runs"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

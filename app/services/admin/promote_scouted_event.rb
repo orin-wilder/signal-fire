@@ -1,9 +1,7 @@
 module Admin
-  # Turns a ScoutedEventCandidate into a real (but unpublished/pending) record on
-  # the totem board (Event) and/or the bulletin board (BulletinPost). Both land in
-  # a review-required state so scouted content never hits a public surface until an
-  # admin publishes/approves it. Returns the (possibly invalid) record; the caller
-  # checks #persisted?.
+  # Turns a ScoutedEventCandidate into a real but pending_review Event on the totem
+  # board, so scouted content never hits a public surface until an admin publishes
+  # it. Returns the (possibly invalid) record; the caller checks #persisted?.
   class PromoteScoutedEvent
     DEFAULT_DURATION = 2.hours
 
