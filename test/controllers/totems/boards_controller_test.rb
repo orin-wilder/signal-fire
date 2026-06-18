@@ -41,6 +41,18 @@ class Totems::BoardsControllerTest < ActionDispatch::IntegrationTest
     assert_match events(:past_event).title, response.body
   end
 
+  test "empty board shows the AI scout CTA to a moderator" do
+    post sign_in_path, params: { email: users(:admin_user).email, password: "password123" }
+    get totem_board_path(totems(:secondary_totem).slug)
+    assert_response :success
+    assert_select "a", text: /find events with ai/i
+  end
+
+  test "empty board hides the AI scout CTA from anonymous visitors" do
+    get totem_board_path(totems(:secondary_totem).slug)
+    assert_select "a", text: /find events with ai/i, count: 0
+  end
+
   test "GET /t/:slug 404 for unknown slug" do
     get totem_board_path("no-such-totem")
     assert_response :not_found

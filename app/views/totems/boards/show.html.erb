@@ -60,8 +60,17 @@
       <p class="text-center text-[#867a60] py-6 text-sm">Nothing scheduled here yet — be the first to add something.</p>
     <% end %>
 
-    <%# ── Notify-me email capture (only on a genuinely empty board) ── %>
+    <%# ── Empty-board extras (notify-me + moderator AI scout) ── %>
     <% if @board_empty %>
+      <% if current_user&.can_moderate_totem?(@totem) %>
+        <div class="border-t border-[#867a60]/20 pt-8">
+          <p class="font-mono text-xs tracking-widest text-[#867a60] uppercase mb-2">Moderator tools</p>
+          <p class="text-sm text-[#867a60] mb-3">This board is quiet — seed it with AI-suggested events from around the neighborhood.</p>
+          <%= link_to "Find events with AI →", new_totem_admin_scout_path(totem_id: @totem.id),
+                class: "inline-block bg-[#1a1a12] text-[#f2f0d9] font-semibold text-sm px-4 py-2 rounded-lg hover:bg-[#1a1a12]/90 transition" %>
+        </div>
+      <% end %>
+
       <div class="border-t border-[#867a60]/20 pt-8">
         <p class="font-mono text-xs tracking-widest text-[#867a60] uppercase mb-2">Get notified when it lights up</p>
         <p class="text-sm text-[#867a60] mb-4">Drop your email and we'll let you know the first time a group posts here.</p>
