@@ -1,6 +1,6 @@
 <% content_for :title, @totem.name %>
 
-<div class="min-h-screen bg-[#f2f0d9]" data-controller="app-nudge<%= ' account-signup' unless app_nudges_enabled? || signed_in? %>">
+<div class="min-h-screen overflow-x-clip bg-[#f2f0d9]" data-controller="app-nudge<%= ' account-signup' unless app_nudges_enabled? || signed_in? %>">
   <header class="px-4 pt-8 pb-6">
     <div class="flex items-start justify-between gap-3">
       <div class="flex-1 min-w-0">
@@ -99,7 +99,7 @@
       </div>
     <% end %>
 
-    <%= render "shared/nearby_carousel", events: @nearby, heading: "Other places nearby" %>
+    <%= render "nearby_section", events: @nearby, heading: "Other places nearby" %>
   </main>
 
   <footer class="px-4 pb-6 text-center text-xs text-[#867a60] space-x-3">
