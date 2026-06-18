@@ -1,7 +1,14 @@
-# Phase 2 backfill seam: maps a BulletinPost onto an Event so the one-time data
-# migration and its parity test share a single source of truth. BulletinPost is
-# the weaker subset of Event — every field has a home here.
+# Phase 2 backfill seam: maps a legacy bulletin post onto an Event. Historical —
+# the backfill already ran in every real environment; this only executes on a
+# fresh `db:migrate` replay (where bulletin_posts still exists before the later
+# drop migration). Reads the table directly so it survives deletion of the
+# BulletinPost model.
 class BulletinPostMigrator
+  # Decoupled reader for the legacy bulletin_posts table (no app model needed).
+  class Source < ActiveRecord::Base
+    self.table_name = "bulletin_posts"
+  end
+
   # bulletin_posts.source -> events.provenance
   PROVENANCE_BY_SOURCE = {
     "public_submission" => "board_submission",
@@ -49,7 +56,7 @@ class BulletinPostMigrator
   # to this post onto the new Event. The notification gate never fires here — no
   # backfilled row is host-authored.
   def self.migrate_all!
-    BulletinPost.find_each do |post|
+    Source.find_each do |post|
       event = build_event(post)
       event.save!
       event.update_columns(created_at: post.created_at, updated_at: post.updated_at)

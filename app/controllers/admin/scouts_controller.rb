@@ -11,7 +11,7 @@ class Admin::ScoutsController < Admin::ApplicationController
   end
 
   def show
-    @run = ScoutRun.includes(candidates: [ :event, :bulletin_post ]).find(params[:id])
+    @run = ScoutRun.includes(candidates: :event).find(params[:id])
     @candidates = @run.candidates.active.order(:created_at) if @run.complete?
   end
 
