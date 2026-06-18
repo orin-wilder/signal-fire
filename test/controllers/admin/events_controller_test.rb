@@ -35,6 +35,17 @@ class Admin::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_select "td", text: @cancelled.title, count: 0
   end
 
+  test "GET /admin/events?state=pending_review shows only the review queue" do
+    sign_in_as_admin
+    pending = Event.create!(totem: @totem, title: "Needs review", status: "active",
+                            provenance: "board_submission", approval_state: "pending_review",
+                            start_time: 2.days.from_now.change(hour: 18, min: 0))
+    get admin_events_path, params: { state: "pending_review" }
+    assert_response :success
+    assert_select "td", text: pending.title
+    assert_select "td", text: @event.title, count: 0
+  end
+
   test "GET /admin/events filters by totem name" do
     sign_in_as_admin
     get admin_events_path, params: { q: @totem.name }

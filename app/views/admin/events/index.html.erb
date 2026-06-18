@@ -5,8 +5,16 @@
   <h1 class="font-serif text-3xl text-ink mb-1">Events.</h1>
   <p class="text-stone text-sm mb-6">All events across all totems. Admin can create on behalf of any host and edit any event.</p>
 
+  <div class="flex items-center gap-1 mb-4">
+    <%= link_to "All events", admin_events_path(q: params[:q]),
+          class: "font-mono text-[10px] uppercase tracking-widest px-3 py-1 rounded border transition #{params[:state].blank? ? 'border-ink bg-ink text-white' : 'border-stone/30 text-stone hover:border-ink hover:text-ink'}" %>
+    <%= link_to "Pending review", admin_events_path(state: "pending_review", q: params[:q]),
+          class: "font-mono text-[10px] uppercase tracking-widest px-3 py-1 rounded border transition #{params[:state] == 'pending_review' ? 'border-ink bg-ink text-white' : 'border-stone/30 text-stone hover:border-ink hover:text-ink'}" %>
+  </div>
+
   <div class="flex items-center gap-3 mb-5">
     <%= form_with url: admin_events_path, method: :get, class: "flex-1 max-w-sm" do |f| %>
+      <%= f.hidden_field :state, value: params[:state] %>
       <%= f.search_field :q,
             value: params[:q],
             placeholder: "Filter by host, totem, or title…",
@@ -43,8 +51,11 @@
                 <% end %>
               </td>
               <td class="px-4 py-3 text-stone">
-                <% host_name = event.host_user.host_profile&.display_name || event.host_user.name %>
-                <%= host_name %>
+                <% if event.host_user %>
+                  <%= event.host_user.host_profile&.display_name || event.host_user.name %>
+                <% else %>
+                  <span class="text-stone/50 italic">Submitted<%= event.submitter_email.present? ? " · #{event.submitter_email}" : "" %></span>
+                <% end %>
                 <span class="text-stone/40">·</span>
                 <%= event.totem.name %>
               </td>

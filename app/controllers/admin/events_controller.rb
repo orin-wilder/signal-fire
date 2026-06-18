@@ -6,6 +6,9 @@ class Admin::EventsController < Admin::ApplicationController
   def index
     @events = Event.includes(:totem, host_user: :host_profile).order(start_time: :desc)
 
+    # The moderation queue across all totems (replaces the bulletin pending list).
+    @events = @events.where(approval_state: "pending_review") if params[:state] == "pending_review"
+
     if params[:q].present?
       q = "%#{params[:q]}%"
       @events = @events

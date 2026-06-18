@@ -1,0 +1,54 @@
+<% content_for :title, "Edit submission — Signal Fire" %>
+<% input = "w-full px-3 py-2 bg-white border border-stone/30 rounded-lg text-sm text-ink placeholder:text-stone/50 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember transition" %>
+<% label = "block text-sm font-medium text-ink mb-1" %>
+<% error = "text-ember text-xs mt-1" %>
+<% zone = ->(t) { t&.in_time_zone("America/New_York") } %>
+
+<div class="max-w-xl">
+  <p class="text-xs font-mono text-stone/50 uppercase tracking-widest mb-1">Totem Admin · <%= @event.totem.name %></p>
+  <h1 class="font-serif text-3xl text-ink mb-6">Edit submission.</h1>
+
+  <%= form_with model: @event, url: totem_admin_event_path(@event), method: :patch, scope: :event do |f| %>
+    <%= f.hidden_field :recurrence_rule %>
+
+    <div class="mb-4">
+      <%= f.label :title, "Event name", class: label %>
+      <%= f.text_field :title, class: input, required: true %>
+      <% if @event.errors[:title].any? %><p class="<%= error %>"><%= @event.errors[:title].first %></p><% end %>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3 mb-1">
+      <div>
+        <%= f.label :start_date, "Date", class: label %>
+        <%= f.date_field :start_date, value: zone.call(@event.start_time)&.strftime("%Y-%m-%d"), class: input %>
+      </div>
+      <div>
+        <%= f.label :start_time_of_day, "Start", class: label %>
+        <%= f.time_field :start_time_of_day, value: zone.call(@event.start_time)&.strftime("%H:%M"), class: input %>
+      </div>
+      <div>
+        <%= f.label :end_time_of_day, "End", class: label %>
+        <%= f.time_field :end_time_of_day, value: zone.call(@event.end_time)&.strftime("%H:%M"), class: input %>
+      </div>
+    </div>
+    <% if @event.errors[:end_time].any? %><p class="<%= error %> mb-3"><%= @event.errors[:end_time].first %></p><% end %>
+    <div class="mb-4"></div>
+
+    <div class="mb-4">
+      <%= f.label :short_description, "Description", class: label %>
+      <%= f.text_field :short_description, class: input %>
+      <% if @event.errors[:short_description].any? %><p class="<%= error %>"><%= @event.errors[:short_description].first %></p><% end %>
+    </div>
+
+    <div class="mb-6">
+      <%= f.label :source_url, "Link (optional)", class: label %>
+      <%= f.url_field :source_url, class: input %>
+      <% if @event.errors[:source_url].any? %><p class="<%= error %>"><%= @event.errors[:source_url].first %></p><% end %>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <%= f.submit "Save", class: "bg-ember text-white font-semibold px-4 py-2 rounded-lg hover:bg-ember/90 transition" %>
+      <%= link_to "Cancel", totem_admin_events_path, class: "text-sm text-stone hover:text-ink transition" %>
+    </div>
+  <% end %>
+</div>

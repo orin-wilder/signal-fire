@@ -1,0 +1,13 @@
+<% if @event.persisted? %>
+  <%= turbo_stream.replace "event-submission-form" do %>
+    <div id="event-submission-form">
+      <%= render "totems/event_submissions/success", totem: @totem, event: @event %>
+    </div>
+  <% end %>
+<% else %>
+  <%= turbo_stream.replace "event-submission-form" do %>
+    <div id="event-submission-form">
+      <%= render "totems/event_submissions/form", totem: @totem, event: @event %>
+    </div>
+  <% end %>
+<% end %>

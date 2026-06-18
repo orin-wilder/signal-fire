@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   get  "/h/:host_slug",                               to: "hosts#show",                        as: :host_page
   get  "/about",                                      to: "pages#about",                       as: :about
   get  "/t/:slug",                                    to: "totems/boards#show",                as: :totem_board
+  post "/t/:slug/events",                             to: "totems/event_submissions#create",   as: :totem_event_submissions
   get  "/t/:slug/e/:event_slug",                      to: "totems/events#show",                as: :totem_event
   get  "/t/:slug/e/:event_slug/calendar.ics",         to: "totems/events#calendar",            as: :event_calendar
   post "/t/:slug/e/:event_slug/check_ins",            to: "totems/check_ins#create",           as: :totem_event_check_ins
@@ -98,6 +99,9 @@ Rails.application.routes.draw do
   namespace :totem_admin do
     resources :totems, only: [:index]
     resources :totem_assignments, only: [:new, :create]
+    resources :events, only: [:index, :edit, :update, :destroy] do
+      member { patch :publish }
+    end
   end
 
   # Admin console
