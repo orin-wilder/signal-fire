@@ -24,10 +24,9 @@ Rails.application.routes.draw do
   get  "/t/:slug/e/:event_slug/check_ins/success",   to: "totems/check_ins#success",          as: :totem_event_check_in_success
   post "/empty_totem_email_captures",                 to: "empty_totem_email_captures#create", as: :empty_totem_email_captures
 
-  # Public web — Bulletin Board (standalone, anonymous, reached via QR)
-  get  "/stpeteboards",            to: "bulletin_boards#index",  as: :bulletin_boards_directory
-  get  "/board/:totem_slug",       to: "bulletin_boards#show",   as: :bulletin_board
-  post "/board/:totem_slug/posts", to: "bulletin_boards#create", as: :bulletin_board_posts
+  # Retired Bulletin Board → unified totem board. 301 so printed/QR links keep working.
+  get "/stpeteboards",      to: redirect("/stpete", status: 301)
+  get "/board/:totem_slug", to: redirect("/t/%{totem_slug}", status: 301)
 
   # Web totem favorite toggle and host follow (session auth)
   resources :totem_favorites, only: [:create, :destroy]
@@ -123,14 +122,6 @@ Rails.application.routes.draw do
     resources :events do
       member { patch :publish }
     end
-    resources :bulletin_posts, only: [:index, :edit, :update, :destroy] do
-      member do
-        patch :approve
-      end
-    end
-    # Admin-only AI "polish" for bulletin descriptions (summarize keeps the ≤160 cap).
-    post "bulletin_posts/description/summarize", to: "bulletin_posts/descriptions#summarize", as: :bulletin_post_description_summarize
-
     # AI Event Scout (2A): find real events via web search → review queue → promote.
     resources :scouts, only: [:new, :create, :show] do
       member { get :status }
@@ -138,7 +129,6 @@ Rails.application.routes.draw do
     resources :scout_candidates, only: [] do
       member do
         post :add_to_totem
-        post :add_to_bulletin
         post :ignore
       end
     end

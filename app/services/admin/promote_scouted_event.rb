@@ -24,20 +24,8 @@ module Admin
       )
     end
 
-    def self.to_bulletin(candidate)
-      BulletinPost.create(
-        totem:       candidate.scout_run.totem,
-        title:       candidate.title.to_s.truncate(80),
-        description: candidate.description.to_s.truncate(160).presence || candidate.title.to_s.truncate(160),
-        starts_at:   safe_start(candidate),
-        status:      "pending",
-        source:      "scouted",
-        source_url:  candidate.source_url
-      )
-    end
-
     # Use the parsed AI date when it's in the future; otherwise a sane near-future
-    # default (keeps BulletinPost's future-only validation happy).
+    # default for the pending event.
     def self.safe_start(candidate)
       parsed = candidate.starts_at
       return parsed if parsed && parsed > Time.current

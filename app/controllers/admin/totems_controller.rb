@@ -47,9 +47,9 @@ class Admin::TotemsController < Admin::ApplicationController
               filename: "#{@totem.slug}-qr.png"
   end
 
-  # QR pointing at the public bulletin board (the paint-stick sign target).
+  # QR pointing at the public totem board (the paint-stick sign target).
   def board_qr
-    url = bulletin_board_url(@totem.slug)
+    url = totem_board_url(@totem.slug)
     qr = RQRCode::QRCode.new(url)
     png = qr.as_png(size: 300, border_modules: 4)
     send_data png.to_s,

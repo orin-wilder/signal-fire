@@ -2,7 +2,6 @@ import { Controller } from "@hotwired/stimulus"
 
 // Drives the inline "Add an event" panel on a totem board: opens the panel and
 // reveals the recurrence cadence toggle when "happens regularly" is checked.
-// Tailwind-classed successor to bulletin_board_controller.js.
 export default class extends Controller {
   static targets = ["panel", "cta", "cadence", "recurring"]
 

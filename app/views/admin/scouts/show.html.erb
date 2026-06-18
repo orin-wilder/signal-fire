@@ -83,14 +83,6 @@
                           class: "bg-ink text-paper text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-ink/90 transition" %>
                   <% end %>
 
-                  <%# Bulletin %>
-                  <% if c.added_to_bulletin? %>
-                    <span class="text-xs text-stone">✓ Bulletin (pending)</span>
-                  <% else %>
-                    <%= button_to "Add to Bulletin", add_to_bulletin_admin_scout_candidate_path(c), method: :post,
-                          class: "border border-ink/30 text-ink text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-ink/5 transition" %>
-                  <% end %>
-
                   <%= button_to "Ignore", ignore_admin_scout_candidate_path(c), method: :post,
                         class: "text-xs text-stone hover:text-ink transition" %>
                 </div>
