@@ -6,12 +6,12 @@
   <%= render "form", totem: @totem %>
 
   <div class="mt-8 pt-6 border-t border-stone/20">
-    <p class="text-xs font-mono text-stone/50 uppercase tracking-widest mb-2">Bulletin board</p>
+    <p class="text-xs font-mono text-stone/50 uppercase tracking-widest mb-2">Public board</p>
     <p class="text-sm text-stone mb-2">Public board for the paint-stick sign. Print the QR or share the link.</p>
     <div class="flex items-center gap-3">
-      <%= link_to bulletin_board_url(@totem.slug), target: "_blank", rel: "noopener",
+      <%= link_to totem_board_url(@totem.slug), target: "_blank", rel: "noopener",
             class: "text-sm text-ink underline break-all" do %>
-        <%= bulletin_board_url(@totem.slug) %>
+        <%= totem_board_url(@totem.slug) %>
       <% end %>
     </div>
     <%= link_to "Download board QR", board_qr_admin_totem_path(@totem),

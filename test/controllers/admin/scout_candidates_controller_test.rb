@@ -38,17 +38,6 @@ class Admin::ScoutCandidatesControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes event.totem.upcoming_events, event
   end
 
-  test "add_to_bulletin creates a pending scouted bulletin post" do
-    sign_in_as_admin
-    assert_difference "BulletinPost.count", 1 do
-      post add_to_bulletin_admin_scout_candidate_path(@candidate)
-    end
-    post = @candidate.reload.bulletin_post
-    assert post.present?
-    assert_equal "scouted", post.source
-    assert_equal "pending", post.status
-  end
-
   test "publishing a scouted event makes it visible on the totem board" do
     sign_in_as_admin
     post add_to_totem_admin_scout_candidate_path(@candidate)

@@ -11,16 +11,6 @@ class Admin::ScoutCandidatesController < Admin::ApplicationController
     end
   end
 
-  def add_to_bulletin
-    post = Admin::PromoteScoutedEvent.to_bulletin(@candidate)
-    if post.persisted?
-      @candidate.update!(bulletin_post: post)
-      back "Added to #{post.totem.name} bulletin board — pending review."
-    else
-      back_alert "Couldn't add to bulletin: #{post.errors.full_messages.to_sentence}"
-    end
-  end
-
   def ignore
     @candidate.update!(ignored: true)
     back "Dismissed."

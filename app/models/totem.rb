@@ -4,6 +4,8 @@ class Totem < ApplicationRecord
   has_many :events
   has_many :totem_favorites
   has_many :empty_totem_email_captures
+  # Retained read-only during the bulletin transition (data kept; UI/write paths
+  # removed). Dropped together with the bulletin_posts table in the follow-up.
   has_many :bulletin_posts, dependent: :destroy
 
   validates :name, presence: true
