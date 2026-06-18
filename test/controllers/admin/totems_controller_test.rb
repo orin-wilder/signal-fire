@@ -189,6 +189,20 @@ class Admin::TotemsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.headers["Content-Disposition"], "#{@totem.slug}-board-qr.png"
   end
 
+  test "GET /admin/totems/:id/short_qr sends a short-code PNG file" do
+    sign_in_as_admin
+    get short_qr_admin_totem_path(@totem)
+    assert_response :success
+    assert_equal "image/png", response.content_type
+    assert_includes response.headers["Content-Disposition"], "#{@totem.slug}-short-qr.png"
+  end
+
+  test "PATCH /admin/totems/:id updates the short_code" do
+    sign_in_as_admin
+    patch admin_totem_path(@totem), params: { totem: { short_code: "88" } }
+    assert_equal "88", @totem.reload.short_code
+  end
+
   private
 
   def sign_in_as_admin

@@ -5,17 +5,24 @@ class Totem < ApplicationRecord
   has_many :totem_favorites
   has_many :empty_totem_email_captures
 
+  # Physical short code (Phase 6): a short numeric printed on the totem for typed
+  # entry at /g/:code. String storage keeps leading zeros and lets length grow.
+  SHORT_CODE_LENGTH = 2
+
   validates :name, presence: true
   validates :location, presence: true
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9-]+\z/, message: "only lowercase letters, numbers, and hyphens" }
   validates :character_description, length: { maximum: 140 }, allow_blank: true
   validates :city_slug, presence: true
+  validates :short_code, uniqueness: true, allow_blank: true,
+    format: { with: /\A\d{2,}\z/, message: "must be at least 2 digits" }
 
   scope :active,             ->       { where(active: true) }
   scope :for_city,           ->(slug) { where(city_slug: slug) }
   scope :city_board_visible, ->       { active.where.not(character_description: [ nil, "" ]) }
 
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
+  before_validation :generate_short_code, if: -> { short_code.blank? }
 
   def board_empty?
     return true unless active
@@ -81,5 +88,19 @@ class Totem < ApplicationRecord
       n += 1
     end
     self.slug = candidate
+  end
+
+  # Mirrors generate_slug: random numeric code with a uniqueness-retry loop. Grows
+  # a digit if the current length gets crowded so it can't spin forever.
+  def generate_short_code
+    length = SHORT_CODE_LENGTH
+    attempts = 0
+    loop do
+      candidate = rand(10**length).to_s.rjust(length, "0")
+      return self.short_code = candidate unless Totem.where.not(id: id).exists?(short_code: candidate)
+
+      attempts += 1
+      length += 1 if attempts >= 20
+    end
   end
 end

@@ -1,5 +1,5 @@
 class Admin::TotemsController < Admin::ApplicationController
-  before_action :set_totem, only: [:edit, :update, :destroy, :qr, :board_qr]
+  before_action :set_totem, only: [:edit, :update, :destroy, :qr, :board_qr, :short_qr]
 
   def index
     @totems = Totem.includes(:host_totem_assignments)
@@ -58,6 +58,18 @@ class Admin::TotemsController < Admin::ApplicationController
               filename: "#{@totem.slug}-board-qr.png"
   end
 
+  # QR encoding the short /g/:code URL — lower density prints reliably small on
+  # hand-fabricated totem art, and matches the printed number.
+  def short_qr
+    url = totem_short_code_url(@totem.short_code)
+    qr = RQRCode::QRCode.new(url)
+    png = qr.as_png(size: 300, border_modules: 4)
+    send_data png.to_s,
+              type: "image/png",
+              disposition: "attachment",
+              filename: "#{@totem.slug}-short-qr.png"
+  end
+
   private
 
   def set_totem
@@ -65,6 +77,6 @@ class Admin::TotemsController < Admin::ApplicationController
   end
 
   def totem_params
-    params.require(:totem).permit(:name, :location, :sublocation, :active, :character_description, :neighborhood)
+    params.require(:totem).permit(:name, :location, :sublocation, :active, :character_description, :neighborhood, :short_code)
   end
 end
