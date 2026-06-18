@@ -1,0 +1,25 @@
+<%# locals: events, heading — vertical stack (no horizontal scroll on this slim board) %>
+<% nearby = (events || []).first(4) %>
+<% if nearby.any? %>
+  <section aria-label="<%= heading %>">
+    <p class="font-mono text-[10px] tracking-widest text-[#867a60] uppercase mb-3"><%= heading %></p>
+    <div class="space-y-2">
+      <% nearby.each do |event| %>
+        <%= link_to totem_board_path(event.totem.slug),
+              class: "block rounded-xl border border-[#867a60]/30 bg-white p-4 hover:border-[#867a60] transition-colors",
+              data: { analytics: "nearby_carousel_clicked", totem_slug: event.totem.slug } do %>
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <p class="font-mono text-[10px] tracking-widest text-[#867a60] uppercase truncate"><%= event.totem.name %></p>
+              <h3 class="font-medium text-[#1a1a12] mt-1 truncate"><%= event.title %></h3>
+              <p class="text-sm text-[#867a60] mt-0.5">
+                <%= city_board_event_day_label(event) %> · <%= event.next_occurrence.strftime("%-I:%M %p") %>
+              </p>
+            </div>
+            <span class="text-[#867a60] shrink-0 text-lg leading-none">›</span>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+<% end %>

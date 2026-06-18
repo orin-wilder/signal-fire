@@ -1,6 +1,6 @@
 <% content_for :title, @totem.name %>
 
-<div class="min-h-screen bg-[#f2f0d9]" data-controller="app-nudge<%= ' account-signup' unless app_nudges_enabled? || signed_in? %>">
+<div class="min-h-screen overflow-x-clip bg-[#f2f0d9]" data-controller="app-nudge<%= ' account-signup' unless app_nudges_enabled? || signed_in? %>">
   <header class="px-4 pt-8 pb-6">
     <div class="flex items-start justify-between gap-3">
       <div class="flex-1 min-w-0">
@@ -32,6 +32,56 @@
   </header>
 
   <main class="px-4 pb-24 space-y-8">
+    <%# ── Add an event: prominent CTA that opens the inline submission panel ── %>
+    <section data-controller="event-submission" aria-label="Add an event">
+      <button type="button"
+              data-event-submission-target="cta"
+              data-action="event-submission#open"
+              class="w-full bg-[#e24820] hover:bg-[#c43a18] text-white font-semibold rounded-xl px-4 py-3.5 transition-colors">
+        + Add an event here
+      </button>
+      <div data-event-submission-target="panel" hidden
+           class="bg-white border border-[#867a60]/30 rounded-xl p-5 mt-3">
+        <div id="event-submission-form">
+          <%= render "totems/event_submissions/form", totem: @totem, event: @event %>
+        </div>
+      </div>
+    </section>
+
+    <% if @active_now.any? %>
+      <%= render "active_now_section", events: @active_now %>
+    <% end %>
+
+    <% if @upcoming.any? %>
+      <%= render "upcoming_section", events: @upcoming %>
+    <% end %>
+
+    <% if @active_now.empty? && @upcoming.empty? %>
+      <p class="text-center text-[#867a60] py-6 text-sm">Nothing scheduled here yet — be the first to add something.</p>
+    <% end %>
+
+    <%# ── Notify-me email capture (only on a genuinely empty board) ── %>
+    <% if @board_empty %>
+      <div class="border-t border-[#867a60]/20 pt-8">
+        <p class="font-mono text-xs tracking-widest text-[#867a60] uppercase mb-2">Get notified when it lights up</p>
+        <p class="text-sm text-[#867a60] mb-4">Drop your email and we'll let you know the first time a group posts here.</p>
+
+        <%= form_with url: empty_totem_email_captures_path, method: :post, class: "space-y-3" do |f| %>
+          <%= hidden_field_tag :totem_id, @totem.id %>
+          <%= label_tag :email, "Email address", class: "sr-only" %>
+          <%= email_field_tag :email, nil,
+                placeholder: "you@email.com", required: true, autocomplete: "email",
+                class: "w-full border border-[#867a60]/40 bg-white rounded-lg px-4 py-3 text-[#1a1a12] placeholder-[#867a60]/60 focus:outline-none focus:ring-2 focus:ring-[#e24820] focus:border-transparent" %>
+          <%= submit_tag "Notify me",
+                class: "w-full bg-[#e24820] hover:bg-[#c43a18] text-white font-medium rounded-lg px-4 py-3 cursor-pointer transition-colors" %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if @past.any? %>
+      <%= render "past_section", events: @past, totem: @totem %>
+    <% end %>
+
     <%# Host story panel — taps through to host page %>
     <% if @host&.host_profile&.host_story.present? %>
       <%= link_to host_page_path(@host.host_profile.slug) do %>
@@ -49,19 +99,7 @@
       </div>
     <% end %>
 
-    <% if @active_now.any? %>
-      <%= render "active_now_section", events: @active_now %>
-    <% end %>
-
-    <% if @upcoming.any? %>
-      <%= render "upcoming_section", events: @upcoming %>
-    <% end %>
-
-    <% if @active_now.empty? && @upcoming.empty? %>
-      <p class="text-center text-[#867a60] py-12 text-sm">No upcoming events right now.</p>
-    <% end %>
-
-    <%= render "shared/nearby_carousel", events: @nearby, heading: "Other places nearby" %>
+    <%= render "nearby_section", events: @nearby, heading: "Other places nearby" %>
   </main>
 
   <footer class="px-4 pb-6 text-center text-xs text-[#867a60] space-x-3">
