@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_18_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_18_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -302,11 +302,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_18_000001) do
     t.string "name", null: false
     t.string "neighborhood"
     t.string "qr_url"
+    t.string "short_code"
     t.string "slug", null: false
     t.string "sublocation"
     t.datetime "updated_at", null: false
     t.index ["active"], name: "index_totems_on_active"
     t.index ["city_slug"], name: "index_totems_on_city_slug"
+    t.index ["short_code"], name: "index_totems_on_short_code", unique: true
     t.index ["slug"], name: "index_totems_on_slug", unique: true
   end
 

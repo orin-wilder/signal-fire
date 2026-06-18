@@ -48,6 +48,15 @@
     <%= f.text_field :neighborhood, placeholder: "e.g. Old Northeast", class: field_class %>
   </div>
 
+  <div>
+    <%= f.label :short_code, "Short code", class: label_class %>
+    <p class="text-xs text-stone mb-1">Printed on the totem for typed entry at /g/&lt;code&gt;. Auto-generated; override with a unique number if you like.</p>
+    <%= f.text_field :short_code, placeholder: "auto", inputmode: "numeric", class: field_class %>
+    <% if @totem.errors[:short_code].any? %>
+      <p class="text-xs text-ember mt-1"><%= @totem.errors[:short_code].first %></p>
+    <% end %>
+  </div>
+
   <fieldset>
     <legend class="<%= label_class %>">Status</legend>
     <label class="flex items-center gap-2 cursor-pointer">

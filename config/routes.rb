@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   # Public web — Totem Board + Host Page
   get  "/h/:host_slug",                               to: "hosts#show",                        as: :host_page
   get  "/about",                                      to: "pages#about",                       as: :about
+  get  "/g/:code",                                    to: "totems/short_codes#show",           as: :totem_short_code
   get  "/t/:slug",                                    to: "totems/boards#show",                as: :totem_board
   post "/t/:slug/events",                             to: "totems/event_submissions#create",   as: :totem_event_submissions
   post "/t/:slug/events/from_photo",                  to: "totems/event_photo_extractions#create", as: :totem_event_from_photo
@@ -120,6 +121,7 @@ Rails.application.routes.draw do
       member do
         get :qr
         get :board_qr
+        get :short_qr
       end
     end
     resources :hosts, only: [:index, :new, :create, :edit, :update, :destroy] do

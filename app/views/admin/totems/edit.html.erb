@@ -17,4 +17,19 @@
     <%= link_to "Download board QR", board_qr_admin_totem_path(@totem),
           class: "inline-block mt-3 bg-ember text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-ember/90 transition" %>
   </div>
+
+  <% if @totem.short_code.present? %>
+    <div class="mt-8 pt-6 border-t border-stone/20">
+      <p class="text-xs font-mono text-stone/50 uppercase tracking-widest mb-2">Short code</p>
+      <p class="text-sm text-stone mb-2">Printed on the totem for typed entry. Code <span class="font-mono text-ink font-semibold"><%= @totem.short_code %></span>.</p>
+      <div class="flex items-center gap-3">
+        <%= link_to totem_short_code_url(@totem.short_code), target: "_blank", rel: "noopener",
+              class: "text-sm text-ink underline break-all" do %>
+          <%= totem_short_code_url(@totem.short_code) %>
+        <% end %>
+      </div>
+      <%= link_to "Download short-code QR", short_qr_admin_totem_path(@totem),
+            class: "inline-block mt-3 bg-ember text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-ember/90 transition" %>
+    </div>
+  <% end %>
 </div>

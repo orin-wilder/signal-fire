@@ -1,4 +1,5 @@
 main_totem:
+  short_code: "10"
   name: Main Totem
   slug: main-totem
   active: true
@@ -6,6 +7,7 @@ main_totem:
   city_slug: stpete
 
 secondary_totem:
+  short_code: "20"
   name: Secondary Totem
   slug: secondary-totem
   active: true
@@ -14,6 +16,7 @@ secondary_totem:
   city_slug: stpete
 
 inactive_totem:
+  short_code: "30"
   name: Inactive Totem
   slug: inactive-totem
   active: false
@@ -21,6 +24,7 @@ inactive_totem:
   city_slug: stpete
 
 city_board_totem:
+  short_code: "40"
   name: City Board Totem
   slug: city-board-totem
   active: true
