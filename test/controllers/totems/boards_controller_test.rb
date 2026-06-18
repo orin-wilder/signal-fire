@@ -18,6 +18,29 @@ class Totems::BoardsControllerTest < ActionDispatch::IntegrationTest
     assert_select "form[action='#{empty_totem_email_captures_path}']"
   end
 
+  test "board shows the inline add-event submission form and CTA" do
+    totem = totems(:main_totem)
+    get totem_board_path(totem.slug)
+    assert_response :success
+    assert_select "form[action='#{totem_event_submissions_path(totem.slug)}']"
+    assert_select "button", text: /add an event here/i
+  end
+
+  test "submission form and CTA also render on an empty board" do
+    totem = totems(:secondary_totem)
+    get totem_board_path(totem.slug)
+    assert_select "form[action='#{totem_event_submissions_path(totem.slug)}']"
+    assert_select "button", text: /add an event here/i
+  end
+
+  test "board renders an Earlier section for recent past events" do
+    # past_event fixture (one-time, published, ended 2h ago) belongs to main_totem.
+    get totem_board_path(totems(:main_totem).slug)
+    assert_response :success
+    assert_select "h2", text: /Earlier/
+    assert_match events(:past_event).title, response.body
+  end
+
   test "GET /t/:slug 404 for unknown slug" do
     get totem_board_path("no-such-totem")
     assert_response :not_found

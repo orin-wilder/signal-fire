@@ -59,6 +59,17 @@ class Totem < ApplicationRecord
     events.active.publicly_visible.includes(host_user: :host_profile).reject(&:active_now?).select { |e| e.next_occurrence > window_end }.sort_by(&:next_occurrence)
   end
 
+  # The "Earlier" rail: published one-time events that have ended in the recent
+  # past (matches board_empty?'s recency window), most-recent first. Recurring
+  # events never go "past" — they always have a next occurrence.
+  def past_events(within: 30.days)
+    events.active.publicly_visible
+          .where(recurrence_rule: nil)
+          .where(end_time: within.ago...Time.current)
+          .includes(host_user: :host_profile)
+          .order(end_time: :desc)
+  end
+
   private
 
   def generate_slug

@@ -1,0 +1,22 @@
+<%# locals: events, totem %>
+<section aria-label="Earlier">
+  <h2 class="font-mono text-xs tracking-widest text-[#867a60] uppercase mb-3">Earlier</h2>
+  <div class="space-y-2">
+    <% events.each do |event| %>
+      <% host_name = event.provenance_host? ? event.host_user&.host_profile&.display_name : nil %>
+      <%= link_to totem_event_path(totem.slug, event.slug),
+            class: "block rounded-lg border border-[#867a60]/20 bg-white/50 hover:border-[#867a60] transition-colors p-3" do %>
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex-1 min-w-0">
+            <h3 class="font-medium text-[#1a1a12] text-sm truncate"><%= event.title %></h3>
+            <p class="text-xs text-[#867a60] mt-0.5">
+              <%= event.start_time.strftime("%a, %b %-d") %>
+              <% if host_name %> · with <%= host_name %><% end %>
+            </p>
+          </div>
+          <span class="text-[#867a60] shrink-0 text-lg leading-none">›</span>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</section>

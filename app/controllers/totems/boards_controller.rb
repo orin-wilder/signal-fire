@@ -16,15 +16,16 @@ class Totems::BoardsController < ApplicationController
       source: params[:source] || :qr_scan
     )
 
-    if @totem.board_empty?
-      render :empty
-    else
-      @active_now = @totem.active_now_events
-      @upcoming   = @totem.upcoming_events
-      @host       = @totem.primary_host
-      @favorite   = current_user && TotemFavorite.find_by(user: current_user, totem: @totem)
-      @footer_dismissed = cookies[:footer_dismissed]
-      @nearby     = Event.nearby_upcoming(city_slug: @totem.city_slug, excluding_totem_id: @totem.id)
-    end
+    # One template (Phase 4): board_empty? only decides whether to also show the
+    # "notify me" email capture — it no longer forks to a separate page.
+    @board_empty      = @totem.board_empty?
+    @active_now       = @totem.active_now_events
+    @upcoming         = @totem.upcoming_events
+    @past             = @totem.past_events
+    @host             = @totem.primary_host
+    @favorite         = current_user && TotemFavorite.find_by(user: current_user, totem: @totem)
+    @footer_dismissed = cookies[:footer_dismissed]
+    @nearby           = Event.nearby_upcoming(city_slug: @totem.city_slug, excluding_totem_id: @totem.id)
+    @event            = Event.new
   end
 end
