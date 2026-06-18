@@ -17,6 +17,7 @@ Rails.application.routes.draw do
   get  "/about",                                      to: "pages#about",                       as: :about
   get  "/t/:slug",                                    to: "totems/boards#show",                as: :totem_board
   post "/t/:slug/events",                             to: "totems/event_submissions#create",   as: :totem_event_submissions
+  post "/t/:slug/events/from_photo",                  to: "totems/event_photo_extractions#create", as: :totem_event_from_photo
   get  "/t/:slug/e/:event_slug",                      to: "totems/events#show",                as: :totem_event
   get  "/t/:slug/e/:event_slug/calendar.ics",         to: "totems/events#calendar",            as: :event_calendar
   post "/t/:slug/e/:event_slug/check_ins",            to: "totems/check_ins#create",           as: :totem_event_check_ins

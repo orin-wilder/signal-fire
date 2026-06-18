@@ -5,9 +5,21 @@
 
 <%= form_with url: totem_event_submissions_path(totem.slug),
               method: :post, scope: :event,
-              data: { turbo: true, controller: "event-submission" } do |f| %>
+              data: { turbo: true, controller: "event-submission event-photo",
+                      event_photo_url_value: totem_event_from_photo_path(totem.slug) } do |f| %>
 
   <h2 class="font-serif text-xl text-ink mb-4">Add an event</h2>
+
+  <%# Shortcut: snap a flyer and let AI prefill the fields below. %>
+  <div class="mb-4">
+    <button type="button" data-action="event-photo#choose"
+            class="w-full flex items-center justify-center gap-2 border border-stone/30 text-ink text-sm font-medium rounded-lg px-4 py-2.5 hover:border-ink transition">
+      <span aria-hidden="true">📷</span> Add from a photo
+    </button>
+    <input type="file" accept="image/*" capture="environment" class="hidden"
+           data-event-photo-target="input" data-action="change->event-photo#upload">
+    <p class="text-xs text-stone mt-1" data-event-photo-target="status" aria-live="polite"></p>
+  </div>
 
   <% if event.errors[:base].any? %>
     <p class="<%= error %> mb-3"><%= event.errors[:base].first %></p>
