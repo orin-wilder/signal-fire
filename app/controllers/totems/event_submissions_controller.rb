@@ -113,10 +113,19 @@ class Totems::EventSubmissionsController < ApplicationController
     return if current_user&.can_auto_publish_on?(@totem)
 
     Rails.cache.write(throttle_key, submission_count + 1, expires_in: THROTTLE_WINDOW)
+  rescue StandardError => e
+    # Spam control must never block a submission. If the cache backend is
+    # unreachable (e.g. the Solid Cache database isn't provisioned), fail open.
+    Rails.logger.warn("[event_submission] throttle write failed: #{e.class}: #{e.message}")
   end
 
   def submission_count
     Rails.cache.read(throttle_key).to_i
+  rescue StandardError => e
+    # Treat a cache read failure as "no prior submissions" so the public funnel
+    # degrades to unthrottled rather than 500ing. See record_submission! above.
+    Rails.logger.warn("[event_submission] throttle read failed: #{e.class}: #{e.message}")
+    0
   end
 
   def throttle_key

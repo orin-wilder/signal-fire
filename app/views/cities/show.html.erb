@@ -11,10 +11,6 @@
       <%= link_to "How it works", about_path, class: "text-sm text-[#867a60] hover:text-[#1a1a12] transition-colors" %>
       <%= link_to "Host with us", host_inquiry_path, class: "text-sm text-[#867a60] hover:text-[#1a1a12] transition-colors" %>
       <%= link_to "About", about_path, class: "text-sm text-[#867a60] hover:text-[#1a1a12] transition-colors" %>
-      <button data-controller="app-nudge" data-action="click->app-nudge#open"
-              class="bg-[#e24820] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#c83e1a] transition-colors">
-        Get the app
-      </button>
     </div>
   </nav>
 
@@ -38,10 +34,6 @@
       <%= link_to "How it works", about_path, class: "text-sm text-[#867a60] hover:text-[#1a1a12] transition-colors" %>
       <%= link_to "Host with us", host_inquiry_path, class: "text-sm text-[#867a60] hover:text-[#1a1a12] transition-colors" %>
       <%= link_to "About", about_path, class: "text-sm text-[#867a60] hover:text-[#1a1a12] transition-colors" %>
-      <button data-controller="app-nudge" data-action="click->app-nudge#open"
-              class="self-start bg-[#e24820] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#c83e1a] transition-colors">
-        Get the app
-      </button>
     </div>
   </div>
 
@@ -121,18 +113,4 @@
 
     <%= render "shared/nearby_carousel", events: @nearby, heading: "Elsewhere this week" %>
   </main>
-
-  <%# Persistent app footer %>
-  <div class="fixed bottom-0 inset-x-0 bg-[#1a1a12] text-[#f2f0d9] px-4 py-3 flex items-center justify-between gap-3"
-       data-controller="app-nudge">
-    <p class="text-sm flex-1 leading-tight">
-      Get the app to follow these places — one weekly digest of what's happening, no spam.
-    </p>
-    <button data-action="click->app-nudge#open"
-            class="bg-[#e24820] text-white font-medium rounded px-4 py-2 text-sm shrink-0">
-      Get the app
-    </button>
-  </div>
-
-  <%= render "shared/app_download_nudge" %>
 </div>

@@ -20,26 +20,7 @@
     <% end %>
   </p>
 
-  <div class="w-full max-w-xs border-t border-[#867a60]/20 pt-8 mb-6">
-    <p class="font-medium text-[#1a1a12] mb-1 text-left">Get the app for more</p>
-    <p class="text-sm text-[#867a60] mb-5 text-left">
-      Keep a personal check-in history, follow hosts, and get notified when events go live.
-    </p>
-    <div class="flex gap-3">
-      <a href="#"
-         class="flex-1 text-center border border-[#867a60]/40 rounded-lg px-3 py-3 hover:border-[#867a60] transition-colors">
-        <span class="block text-xs text-[#867a60]">Download on the</span>
-        <span class="block text-sm font-semibold text-[#1a1a12]">App Store</span>
-      </a>
-      <a href="#"
-         class="flex-1 text-center border border-[#867a60]/40 rounded-lg px-3 py-3 hover:border-[#867a60] transition-colors">
-        <span class="block text-xs text-[#867a60]">Get it on</span>
-        <span class="block text-sm font-semibold text-[#1a1a12]">Google Play</span>
-      </a>
-    </div>
-  </div>
-
-  <%= link_to "Not now, back to board",
+  <%= link_to "Back to the board",
         totem_board_path(@totem.slug),
         class: "text-sm text-[#867a60] underline" %>
 </div>

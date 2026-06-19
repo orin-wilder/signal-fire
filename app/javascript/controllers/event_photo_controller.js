@@ -1,7 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
 
-// "Add from a photo": reads an event off a flyer/poster image and prefills the
-// submission form. Sends the image as a base64 data URL to the from_photo
+// "Upload a photo or screenshot": reads an event off an uploaded flyer/poster
+// image or screenshot and prefills the submission form. The user picks an
+// existing image (photo library / files); the camera is not forced open.
+// Sends the image as a base64 data URL to the from_photo
 // endpoint — nothing is uploaded or stored; the user reviews the prefilled
 // fields before submitting through the normal create path.
 export default class extends Controller {

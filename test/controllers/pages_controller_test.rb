@@ -12,10 +12,10 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_select "a", text: /Get the app/i, count: 0
   end
 
-  test "get the app nav link shown when APP_NUDGES_ENABLED=true" do
+  test "get the app nav link is gone even when APP_NUDGES_ENABLED=true" do
     ENV["APP_NUDGES_ENABLED"] = "true"
     get about_path
-    assert_select "a", text: /Get the app/i
+    assert_select "a", text: /Get the app/i, count: 0
   ensure
     ENV.delete("APP_NUDGES_ENABLED")
   end

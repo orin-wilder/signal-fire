@@ -117,13 +117,8 @@
     <%= link_to "Send feedback", "mailto:ryan@communityplaytools.com", class: "underline hover:text-[#1a1a12]" %>
   </footer>
 
-  <% if app_nudges_enabled? && !@footer_dismissed %>
-    <%= render "footer_nudge" %>
-  <% end %>
-
-  <% if app_nudges_enabled? %>
-    <%= render "shared/app_download_nudge" %>
-  <% end %>
+  <%# App-download nudges removed — native app development is paused in favor of
+      the web app. The account-signup prompt below is intentionally kept. %>
 
   <% unless app_nudges_enabled? || signed_in? %>
     <%= render "shared/account_signup_modal" %>

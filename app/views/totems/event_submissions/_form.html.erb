@@ -10,13 +10,15 @@
 
   <h2 class="font-serif text-xl text-ink mb-4">Add an event</h2>
 
-  <%# Shortcut: snap a flyer and let AI prefill the fields below. %>
+  <%# Shortcut: upload a flyer photo or a screenshot and let AI prefill the
+      fields below. No `capture` attribute, so this opens the photo library
+      (with Files as a fallback) rather than forcing the camera. %>
   <div class="mb-4">
     <button type="button" data-action="event-photo#choose"
             class="w-full flex items-center justify-center gap-2 border border-stone/30 text-ink text-sm font-medium rounded-lg px-4 py-2.5 hover:border-ink transition">
-      <span aria-hidden="true">📷</span> Add from a photo
+      <span aria-hidden="true">🖼️</span> Upload a photo or screenshot
     </button>
-    <input type="file" accept="image/*" capture="environment" class="hidden"
+    <input type="file" accept="image/*" class="hidden"
            data-event-photo-target="input" data-action="change->event-photo#upload">
     <p class="text-xs text-stone mt-1" data-event-photo-target="status" aria-live="polite"></p>
   </div>

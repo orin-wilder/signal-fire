@@ -49,6 +49,11 @@ Rails.application.configure do
   # Replace the default in-process memory cache store with a durable alternative.
   config.cache_store = :solid_cache_store
 
+  # Don't emit `Link: rel=preload` headers for stylesheets/scripts. The board's
+  # CSS is small and the digested URL the browser preloaded wasn't being used in
+  # time, producing "preloaded but not used" console warnings.
+  config.action_view.preload_links_header = false
+
   # Replace the default in-process and non-durable queuing backend for Active Job.
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }

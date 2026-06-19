@@ -44,10 +44,17 @@ class Totems::EventPhotoExtractionsController < ApplicationController
 
   def record_attempt!
     Rails.cache.write(throttle_key, attempt_count + 1, expires_in: THROTTLE_WINDOW)
+  rescue StandardError => e
+    # Fail open: a cache-backend outage must not 500 the photo path. Mirrors the
+    # throttle handling in Totems::EventSubmissionsController.
+    Rails.logger.warn("[event_photo] throttle write failed: #{e.class}: #{e.message}")
   end
 
   def attempt_count
     Rails.cache.read(throttle_key).to_i
+  rescue StandardError => e
+    Rails.logger.warn("[event_photo] throttle read failed: #{e.class}: #{e.message}")
+    0
   end
 
   def throttle_key
