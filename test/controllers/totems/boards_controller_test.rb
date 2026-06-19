@@ -33,6 +33,15 @@ class Totems::BoardsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: /add an event here/i
   end
 
+  # Regression: the photo shortcut used capture="environment", which forced the
+  # camera open. It should be a plain image upload (photo library + files).
+  test "photo upload input is a library/file picker, not a forced camera" do
+    get totem_board_path(totems(:main_totem).slug)
+    assert_response :success
+    assert_select "input[type=file][accept='image/*']"
+    assert_select "input[type=file][capture]", count: 0
+  end
+
   test "board renders an Earlier section for recent past events" do
     # past_event fixture (one-time, published, ended 2h ago) belongs to main_totem.
     get totem_board_path(totems(:main_totem).slug)
@@ -82,19 +91,21 @@ class Totems::BoardsControllerTest < ActionDispatch::IntegrationTest
     assert_select "h2", text: /works better in the app/, count: 0
   end
 
-  test "app nudges are shown when APP_NUDGES_ENABLED=true" do
+  # App-download nudges were removed (native app development is paused). They
+  # must not render even with the legacy APP_NUDGES_ENABLED flag still set.
+  test "app-download popup is never rendered even when APP_NUDGES_ENABLED=true" do
     ENV["APP_NUDGES_ENABLED"] = "true"
     get totem_board_path(totems(:main_totem).slug)
-    assert_select "button", text: /Install/
-    assert_select "h2", text: /works better in the app/
+    assert_select "button", text: /Install/, count: 0
+    assert_select "h2", text: /works better in the app/, count: 0
   ensure
     ENV.delete("APP_NUDGES_ENABLED")
   end
 
-  test "app nudges are shown on empty board when APP_NUDGES_ENABLED=true" do
+  test "app-download popup is absent on an empty board even when APP_NUDGES_ENABLED=true" do
     ENV["APP_NUDGES_ENABLED"] = "true"
     get totem_board_path(totems(:secondary_totem).slug)
-    assert_select "h2", text: /works better in the app/
+    assert_select "h2", text: /works better in the app/, count: 0
   ensure
     ENV.delete("APP_NUDGES_ENABLED")
   end

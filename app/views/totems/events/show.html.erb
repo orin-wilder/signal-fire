@@ -1,6 +1,6 @@
 <% content_for :title, "#{@event.title} · #{@totem.name}" %>
 
-<div class="min-h-screen bg-[#f2f0d9]" data-controller="app-nudge">
+<div class="min-h-screen bg-[#f2f0d9]">
   <header class="px-4 pt-6 pb-4 border-b border-[#867a60]/20">
     <%= link_to "‹ Back to board", totem_board_path(@totem.slug),
           class: "inline-flex items-center text-sm text-[#867a60] mb-4" %>
@@ -48,10 +48,8 @@
                 params: @host_follow ? {} : { host_user_id: @event.host_user_id },
                 class: "shrink-0 text-sm font-medium px-4 py-2 rounded-lg border transition #{@host_follow ? 'bg-[#1a1a12] text-white border-[#1a1a12]' : 'bg-transparent text-[#1a1a12] border-[#867a60]/40 hover:border-[#1a1a12]'}" %>
         <% else %>
-          <a href="#app-nudge"
-             class="shrink-0 text-sm font-medium px-4 py-2 rounded-lg border border-[#867a60]/40 text-[#1a1a12] hover:border-[#1a1a12] transition">
-            + Follow
-          </a>
+          <%= link_to "+ Follow", sign_in_path,
+                class: "shrink-0 text-sm font-medium px-4 py-2 rounded-lg border border-[#867a60]/40 text-[#1a1a12] hover:border-[#1a1a12] transition" %>
         <% end %>
       </section>
     <% end %>
@@ -93,16 +91,5 @@
             class="block w-full text-center border border-[#867a60]/40 text-[#1a1a12] font-medium rounded-lg px-4 py-3 bg-transparent hover:border-[#1a1a12] transition">
       Share this event
     </button>
-
-    <% if app_nudges_enabled? && !@event.cancelled? %>
-      <button data-action="click->app-nudge#open"
-              class="block w-full text-center border border-[#867a60]/40 text-[#1a1a12] font-medium rounded-lg px-4 py-3 bg-transparent hover:border-[#867a60] transition">
-        Follow in the app — never miss a <%= @event.recurrence_label.present? ? @event.recurrence_label.split.last : "session" %>
-      </button>
-    <% end %>
   </div>
-
-  <% if app_nudges_enabled? %>
-    <%= render "shared/app_download_nudge" %>
-  <% end %>
 </div>

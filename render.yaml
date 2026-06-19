@@ -15,7 +15,11 @@ services:
     # preDeployCommand is not supported in the free plan, so we will run migrations and seeds as part of the build command.
     # In a production environment, we will want to run these commands separately to avoid downtime during deployment.
     # preDeployCommand: bundle exec rails db:migrate && bundle exec rails db:seed
-    startCommand: bundle exec rails db:migrate && bundle exec rails db:seed && bundle exec rails server -p $PORT -e $RAILS_ENV
+    # db:prepare (not db:migrate) so the Solid Cache/Cable databases get their
+    # schema loaded — those carry a schema file (db/cache_schema.rb) rather than
+    # migrations, so db:migrate alone never creates solid_cache_entries and the
+    # cache-backed throttle 500s. See Totems::EventSubmissionsController.
+    startCommand: bundle exec rails db:prepare && bundle exec rails db:seed && bundle exec rails server -p $PORT -e $RAILS_ENV
     healthCheckPath: /about
     envVars:
       - key: RAILS_ENV

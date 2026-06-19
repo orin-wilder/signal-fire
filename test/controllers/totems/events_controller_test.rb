@@ -47,12 +47,14 @@ class Totems::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_select "h2", text: /works better in the app/, count: 0
   end
 
-  test "app nudge button and sheet are shown when APP_NUDGES_ENABLED=true" do
+  # App-download CTA/nudge removed (native app paused). It must not render even
+  # with the legacy APP_NUDGES_ENABLED flag set.
+  test "app-download CTA and sheet are gone even when APP_NUDGES_ENABLED=true" do
     ENV["APP_NUDGES_ENABLED"] = "true"
     event = events(:upcoming_event)
     get totem_event_path(event.totem.slug, event.slug)
-    assert_select "button", text: /Follow in the app/
-    assert_select "h2", text: /works better in the app/
+    assert_select "button", text: /Follow in the app/, count: 0
+    assert_select "h2", text: /works better in the app/, count: 0
   ensure
     ENV.delete("APP_NUDGES_ENABLED")
   end

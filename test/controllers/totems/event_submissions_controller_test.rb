@@ -141,6 +141,24 @@ class Totems::EventSubmissionsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # Regression: in production Solid Cache's table (solid_cache_entries) ships in
+  # db/cache_schema.rb, which db:migrate never loads — so Rails.cache raised and
+  # 500'd every non-privileged submission (the throttle path). The throttle must
+  # fail open instead of taking down the public funnel.
+  test "submission succeeds when the cache backend raises (fail-open throttle)" do
+    failing_cache = Class.new do
+      def read(*)  = raise(ActiveRecord::StatementInvalid, 'relation "solid_cache_entries" does not exist')
+      def write(*) = raise(ActiveRecord::StatementInvalid, 'relation "solid_cache_entries" does not exist')
+    end.new
+
+    Rails.stub(:cache, failing_cache) do
+      assert_difference "Event.count", 1 do
+        post totem_event_submissions_path(@totem.slug), params: valid_params
+      end
+    end
+    assert_redirected_to totem_board_path(@totem.slug)
+  end
+
   test "auto-publishers are exempt from the throttle" do
     store = ActiveSupport::Cache::MemoryStore.new
     Rails.stub(:cache, store) do

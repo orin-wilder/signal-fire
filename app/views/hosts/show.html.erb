@@ -1,6 +1,6 @@
 <% content_for :title, "#{@host_profile.display_name} — Signal Fire" %>
 
-<div class="min-h-screen bg-[#f2f0d9]" data-controller="app-nudge">
+<div class="min-h-screen bg-[#f2f0d9]">
   <header class="px-4 pt-8 pb-6">
     <p class="font-mono text-xs tracking-widest text-[#867a60] uppercase mb-3">Host · St. Petersburg</p>
 
@@ -28,13 +28,10 @@
       </div>
     <% end %>
 
-    <%# Primary CTA — opens app nudge sheet %>
+    <%# Primary CTA — sign in to follow (web). %>
     <div>
-      <button
-        data-action="click->app-nudge#open"
-        class="w-full bg-[#e24820] text-white font-semibold py-4 rounded-xl text-base">
-        + Follow <%= name_parts.first %>
-      </button>
+      <%= link_to "+ Follow #{name_parts.first}", sign_in_path,
+            class: "block w-full text-center bg-[#e24820] text-white font-semibold py-4 rounded-xl text-base" %>
       <p class="text-xs text-[#867a60] text-center mt-2">You'll hear about new events in the weekly digest.</p>
     </div>
 
@@ -88,17 +85,4 @@
       </section>
     <% end %>
   </main>
-
-  <%# Persistent app footer %>
-  <div class="fixed bottom-0 inset-x-0 bg-[#1a1a12] text-[#f2f0d9] px-4 py-3 flex items-center justify-between gap-3">
-    <p class="text-sm flex-1 leading-tight">
-      Follow <%= @host_profile.display_name %> in the app — one weekly digest, no spam.
-    </p>
-    <button data-action="click->app-nudge#open"
-            class="bg-[#e24820] text-white font-medium rounded px-4 py-2 text-sm shrink-0">
-      Get
-    </button>
-  </div>
-
-  <%= render "shared/app_download_nudge" %>
 </div>

@@ -34,6 +34,22 @@ class Totems::EventPhotoExtractionsControllerTest < ActionDispatch::IntegrationT
     assert_response :unprocessable_entity
   end
 
+  # Same fail-open guarantee as the text submission path: a cache-backend outage
+  # must not 500 the photo extraction.
+  test "succeeds when the cache backend raises (fail-open throttle)" do
+    failing_cache = Class.new do
+      def read(*)  = raise(ActiveRecord::StatementInvalid, 'relation "solid_cache_entries" does not exist')
+      def write(*) = raise(ActiveRecord::StatementInvalid, 'relation "solid_cache_entries" does not exist')
+    end.new
+
+    Rails.stub(:cache, failing_cache) do
+      Ai::EventImageExtractor.stub(:call, ->(**) { ok_result({ "title" => "Y" }) }) do
+        post totem_event_from_photo_path(@totem.slug), params: { image: DATA_URL }, as: :json
+      end
+    end
+    assert_response :success
+  end
+
   test "unknown totem returns 404" do
     post totem_event_from_photo_path("no-such-totem"), params: { image: DATA_URL }, as: :json
     assert_response :not_found
