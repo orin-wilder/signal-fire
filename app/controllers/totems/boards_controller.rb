@@ -9,6 +9,10 @@ class Totems::BoardsController < ApplicationController
 
     session[:return_to] = request.path unless signed_in?
 
+    # Compute social proof from prior traffic, before recording this visit, so a
+    # brand-new totem's first scanner isn't counted as "1 person stopped by".
+    @board_activity = board_activity(@totem)
+
     AnalyticsService.track(
       "totem_board_viewed",
       totem_id: @totem.id,
@@ -33,5 +37,24 @@ class Totems::BoardsController < ApplicationController
     @footer_dismissed = cookies[:footer_dismissed]
     @nearby           = Event.nearby_upcoming(city_slug: @totem.city_slug, excluding_totem_id: @totem.id)
     @event            = Event.new
+  end
+
+  private
+
+  # Lightweight social-proof signals for the masthead so even an empty board
+  # reads as a place people actually use. Only non-zero values are rendered.
+  def board_activity(totem)
+    visitors_this_week = AnalyticsEvent
+      .where(totem_id: totem.id, name: %w[totem_scan board_view])
+      .where("occurred_at > ?", 7.days.ago)
+      .where.not(visitor_hash: nil)
+      .distinct.count(:visitor_hash)
+
+    # Lifetime attendance: authenticated check-ins + the aggregate anonymous
+    # counter (which has no per-row timestamp, so it can't be windowed).
+    authed_checkins    = CheckIn.joins(:event).where(events: { totem_id: totem.id }).count
+    anonymous_checkins = AnonymousCheckInCount.joins(:event).where(events: { totem_id: totem.id }).sum(:count)
+
+    { visitors_this_week: visitors_this_week, total_checkins: authed_checkins + anonymous_checkins }
   end
 end
