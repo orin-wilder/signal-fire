@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_22_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_22_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,7 +25,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_22_000001) do
     t.string "visitor_hash"
     t.index ["event_id", "occurred_at"], name: "index_analytics_events_on_event_id_and_occurred_at"
     t.index ["name", "occurred_at"], name: "index_analytics_events_on_name_and_occurred_at"
+    t.index ["occurred_at"], name: "index_analytics_events_on_occurred_at"
     t.index ["totem_id", "occurred_at"], name: "index_analytics_events_on_totem_id_and_occurred_at"
+    t.index ["visitor_hash"], name: "index_analytics_events_on_visitor_hash"
   end
 
   create_table "anonymous_check_in_counts", force: :cascade do |t|
@@ -308,7 +310,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_22_000001) do
 
   create_table "totems", force: :cascade do |t|
     t.boolean "active", default: false, null: false
-    t.integer "bulletin_board_scan_count", default: 0, null: false
     t.string "character_description", limit: 140
     t.string "city_slug", default: "stpete", null: false
     t.datetime "created_at", null: false
