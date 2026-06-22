@@ -8,6 +8,7 @@ class Totems::ShortCodesController < ApplicationController
     totem = Totem.find_by(short_code: params[:code])
     return head :not_found unless totem
 
+    record_analytics_event("totem_scan", totem: totem, source: "short_code")
     redirect_to totem_board_path(totem.slug, source: :short_code), status: :moved_permanently
   end
 end

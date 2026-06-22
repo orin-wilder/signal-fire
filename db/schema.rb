@@ -10,9 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_18_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_22_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "analytics_events", force: :cascade do |t|
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.bigint "event_id"
+    t.string "name", null: false
+    t.datetime "occurred_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.string "source"
+    t.bigint "totem_id"
+    t.bigint "user_id"
+    t.string "visitor_hash"
+    t.index ["event_id", "occurred_at"], name: "index_analytics_events_on_event_id_and_occurred_at"
+    t.index ["name", "occurred_at"], name: "index_analytics_events_on_name_and_occurred_at"
+    t.index ["totem_id", "occurred_at"], name: "index_analytics_events_on_totem_id_and_occurred_at"
+  end
 
   create_table "anonymous_check_in_counts", force: :cascade do |t|
     t.integer "count", default: 0, null: false

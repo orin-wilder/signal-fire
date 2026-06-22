@@ -1,0 +1,119 @@
+<% content_for :title, "Analytics — Signal Fire Admin" %>
+
+<div class="max-w-5xl">
+  <p class="text-xs font-mono text-stone/50 uppercase tracking-widest mb-1">Admin · Internal</p>
+  <h1 class="font-serif text-3xl text-ink mb-1">Analytics.</h1>
+  <p class="text-stone text-sm mb-6">High-level traffic and trends across totems, activities, and the platform.</p>
+
+  <%# ── Range selector ── %>
+  <div class="flex items-center gap-1 mb-6">
+    <span class="text-xs font-mono text-stone/50 uppercase tracking-wide mr-2">Last</span>
+    <% [7, 30, 90].each do |days| %>
+      <%= link_to "#{days}d", admin_analytics_path(range: days),
+            class: "px-3 py-1.5 rounded-lg text-sm font-medium transition #{@range == days ? 'bg-ink text-white' : 'text-stone hover:bg-stone/10'}" %>
+    <% end %>
+  </div>
+
+  <%# ── Overview stat cards ── %>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+    <% [
+      ["Scans",         @totals[:scans]],
+      ["Board views",   @totals[:board_views]],
+      ["Event views",   @totals[:event_views]],
+      ["Calendar adds", @totals[:calendar_adds]],
+      ["Shares",        @totals[:shares]],
+      ["Check-ins",     @check_ins],
+      ["Follows + favs", @follows + @favorites]
+    ].each do |label, value| %>
+      <div class="bg-white border border-stone/20 rounded-xl px-4 py-4">
+        <p class="text-2xl font-serif text-ink"><%= number_with_delimiter(value) %></p>
+        <p class="text-xs text-stone uppercase tracking-wide mt-0.5"><%= label %></p>
+      </div>
+    <% end %>
+    <div class="bg-white border border-stone/20 rounded-xl px-4 py-4">
+      <p class="text-2xl font-serif text-ink"><%= number_with_delimiter(@unique_visitors) %></p>
+      <p class="text-xs text-stone uppercase tracking-wide mt-0.5">Unique visitors*</p>
+    </div>
+  </div>
+  <p class="text-[11px] text-stone/50 mb-8">
+    *Cookieless estimate from a daily-rotating fingerprint — closer to "visitor-days" than distinct people. No cookies set, no IPs stored.
+  </p>
+
+  <%# ── Daily activity chart ── %>
+  <div class="bg-white border border-stone/20 rounded-xl px-5 py-5 mb-8">
+    <p class="text-xs font-semibold text-stone uppercase tracking-wide mb-3">Daily activity (all signals)</p>
+    <%= analytics_bar_chart(@daily_series) %>
+  </div>
+
+  <%# ── By totem ── %>
+  <h2 class="font-serif text-xl text-ink mb-3">By totem</h2>
+  <% if @totem_rows.any? %>
+    <div class="bg-white border border-stone/20 rounded-xl overflow-hidden mb-8">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-stone/20 text-left">
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Totem</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Scans</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Board views</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Event views</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Cal. adds</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Check-ins</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Visitors*</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-stone/10">
+          <% @totem_rows.each do |row| %>
+            <tr class="hover:bg-stone/5 transition">
+              <td class="px-4 py-3 font-medium text-ink"><%= row[:totem].name %></td>
+              <td class="px-4 py-3 text-stone text-right"><%= number_with_delimiter(row[:scans]) %></td>
+              <td class="px-4 py-3 text-stone text-right"><%= number_with_delimiter(row[:board_views]) %></td>
+              <td class="px-4 py-3 text-stone text-right"><%= number_with_delimiter(row[:event_views]) %></td>
+              <td class="px-4 py-3 text-stone text-right"><%= number_with_delimiter(row[:calendar_adds]) %></td>
+              <td class="px-4 py-3 text-stone text-right"><%= number_with_delimiter(row[:check_ins]) %></td>
+              <td class="px-4 py-3 text-stone text-right"><%= number_with_delimiter(row[:unique_visitors]) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white border border-stone/20 rounded-xl px-6 py-10 text-center text-stone mb-8">
+      <p class="text-sm">No totem activity in this window yet.</p>
+    </div>
+  <% end %>
+
+  <%# ── By activity ── %>
+  <h2 class="font-serif text-xl text-ink mb-3">By activity</h2>
+  <% if @event_rows.any? %>
+    <div class="bg-white border border-stone/20 rounded-xl overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-stone/20 text-left">
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Activity</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide">Totem</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Views</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Cal. adds</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Shares</th>
+            <th class="px-4 py-3 text-xs font-semibold text-stone uppercase tracking-wide text-right">Check-ins</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-stone/10">
+          <% @event_rows.each do |row| %>
+            <tr class="hover:bg-stone/5 transition">
+              <td class="px-4 py-3 font-medium text-ink"><%= row[:event].title %></td>
+              <td class="px-4 py-3 text-stone"><%= row[:event].totem&.name %></td>
+              <td class="px-4 py-3 text-stone text-right"><%= number_with_delimiter(row[:event_views]) %></td>
+              <td class="px-4 py-3 text-stone text-right"><%= number_with_delimiter(row[:calendar_adds]) %></td>
+              <td class="px-4 py-3 text-stone text-right"><%= number_with_delimiter(row[:shares]) %></td>
+              <td class="px-4 py-3 text-stone text-right"><%= number_with_delimiter(row[:check_ins]) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white border border-stone/20 rounded-xl px-6 py-10 text-center text-stone">
+      <p class="text-sm">No activity-level events in this window yet.</p>
+    </div>
+  <% end %>
+</div>

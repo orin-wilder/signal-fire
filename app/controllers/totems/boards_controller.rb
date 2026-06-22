@@ -15,6 +15,7 @@ class Totems::BoardsController < ApplicationController
       auth_state: current_user ? :authenticated : :anonymous,
       source: params[:source] || :qr_scan
     )
+    record_analytics_event("board_view", totem: @totem, source: params[:source] || "qr_scan")
 
     # One template (Phase 4): board_empty? only decides whether to also show the
     # "notify me" email capture — it no longer forks to a separate page.

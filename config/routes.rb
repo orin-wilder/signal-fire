@@ -116,6 +116,7 @@ Rails.application.routes.draw do
 
   # Admin console
   namespace :admin do
+    get "analytics", to: "analytics#index"
     resources :totem_assignments, only: [:new, :create]
     resources :totems do
       member do
