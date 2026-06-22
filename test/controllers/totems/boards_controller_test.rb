@@ -192,4 +192,30 @@ class Totems::BoardsControllerTest < ActionDispatch::IntegrationTest
     assert_equal totem.id,   tracked.first[1][:totem_id]
     assert_equal :anonymous, tracked.first[1][:auth_state]
   end
+
+  # ── Social proof (masthead) ─────────────────────────────────────────────────
+
+  test "board shows host attribution when a primary host exists" do
+    get totem_board_path(totems(:main_totem).slug)
+    assert_select "p", text: /Hosted by/
+  end
+
+  test "board shows the weekly visitor count when there is recent traffic" do
+    totem = totems(:main_totem)
+    3.times do |i|
+      AnalyticsEvent.create!(name: "board_view", totem_id: totem.id,
+        visitor_hash: "v#{i}", occurred_at: 1.day.ago)
+    end
+    get totem_board_path(totem.slug)
+    assert_select "span", text: /stopped by this week/
+  end
+
+  test "board hides activity stats when there is none" do
+    # A totem with no analytics rows and no check-ins renders no stat row.
+    AnalyticsEvent.where(totem_id: totems(:inactive_totem).id).delete_all
+    get totem_board_path(totems(:inactive_totem).slug)
+    assert_response :success
+    assert_select "span", text: /stopped by this week/, count: 0
+    assert_select "span", text: /check-in/, count: 0
+  end
 end
