@@ -48,6 +48,20 @@ class Admin::AnalyticsControllerTest < ActionDispatch::IntegrationTest
     assert_select "td", text: @event.title
   end
 
+  test "shows submission count and board-to-submission conversion" do
+    seed_events
+    sign_in_as_admin
+    get admin_analytics_path
+    assert_response :success
+    # Overview cards include Submissions and the conversion rate.
+    assert_select "p", text: "Submissions"
+    assert_select "p", text: "Board → submission"
+    # 1 submission / 4 board views = 25.0% platform conversion.
+    assert_select "p", text: "25.0%"
+    # Per-totem table carries the Conv. column.
+    assert_select "th", text: "Conv."
+  end
+
   test "shows empty states when there is no activity" do
     AnalyticsEvent.delete_all
     CheckIn.delete_all
@@ -69,6 +83,13 @@ class Admin::AnalyticsControllerTest < ActionDispatch::IntegrationTest
       visitor_hash: "a", occurred_at: 1.day.ago)
     AnalyticsEvent.create!(name: "calendar_add", totem_id: @totem.id, event_id: @event.id,
       visitor_hash: "a", occurred_at: 1.day.ago)
+    # 4 board views and 1 submission → 25% conversion.
+    4.times do |i|
+      AnalyticsEvent.create!(name: "board_view", totem_id: @totem.id,
+        visitor_hash: "v#{i}", occurred_at: 1.day.ago)
+    end
+    AnalyticsEvent.create!(name: "event_submission", totem_id: @totem.id, event_id: @event.id,
+      source: "pending_review", visitor_hash: "a", occurred_at: 1.day.ago)
   end
 
   def sign_in_as_admin

@@ -8,7 +8,7 @@ class AnalyticsEvent < ApplicationRecord
   belongs_to :user, optional: true
 
   # The signal names this table records. Keep in sync with the call sites.
-  RECORDED_NAMES = %w[totem_scan board_view event_view calendar_add event_share].freeze
+  RECORDED_NAMES = %w[totem_scan board_view event_view calendar_add event_share event_submission].freeze
 
   validates :name, presence: true
 

@@ -15,7 +15,12 @@ class Totems::BoardsController < ApplicationController
       auth_state: current_user ? :authenticated : :anonymous,
       source: params[:source] || :qr_scan
     )
-    record_analytics_event("board_view", totem: @totem, source: params[:source] || "qr_scan")
+    board_source = params[:source] || "qr_scan"
+    record_analytics_event("board_view", totem: @totem, source: board_source)
+    # Count the physical scan here for QR/direct entry. Typed short-codes are
+    # already counted in Totems::ShortCodesController before the redirect, so skip
+    # them to avoid double-counting.
+    record_analytics_event("totem_scan", totem: @totem, source: board_source) unless board_source == "short_code"
 
     # One template (Phase 4): board_empty? only decides whether to also show the
     # "notify me" email capture — it no longer forks to a separate page.

@@ -19,6 +19,7 @@ class Totems::EventSubmissionsController < ApplicationController
 
     if @event.save
       record_submission!
+      record_analytics_event("event_submission", totem: @totem, event: @event, source: @event.approval_state)
       respond_to do |format|
         format.turbo_stream # create.turbo_stream.erb → swap form for success
         format.html { redirect_to totem_board_path(@totem.slug), notice: submission_notice }
