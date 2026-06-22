@@ -1,4 +1,6 @@
 class ApplicationController < ActionController::Base
+  include AnalyticsRecording
+
   allow_browser versions: :modern if Rails.env.production?
   stale_when_importmap_changes
 

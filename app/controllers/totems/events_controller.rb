@@ -14,12 +14,14 @@ class Totems::EventsController < ApplicationController
       auth_state: current_user ? :authenticated : :anonymous,
       source: params[:source] || :direct
     )
+    record_analytics_event("event_view", totem: @totem, event: @event, source: params[:source] || "direct")
   end
 
   def calendar
     ics = IcsService.generate(@event)
     AnalyticsService.track("event_calendar_saved",
       event_id: @event.id, user_id: current_user&.id)
+    record_analytics_event("calendar_add", totem: @totem, event: @event)
     send_data ics,
       type:        "text/calendar; charset=utf-8",
       disposition: "attachment",
