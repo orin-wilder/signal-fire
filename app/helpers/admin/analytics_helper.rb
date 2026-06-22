@@ -1,4 +1,12 @@
 module Admin::AnalyticsHelper
+  # Formats a board-view → submission conversion rate (0.0–1.0) as a percentage,
+  # or an em dash when there was no traffic to divide by (rate is nil).
+  def format_conversion(rate)
+    return "—" if rate.nil?
+
+    "#{(rate * 100).round(1)}%"
+  end
+
   # Renders a lightweight inline-SVG bar chart from a series of [date, count]
   # pairs. No JS / charting dependency — just scaled <rect>s.
   def analytics_bar_chart(series, height: 120)

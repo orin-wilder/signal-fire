@@ -23,6 +23,33 @@ class AnalyticsRecordingTest < ActionDispatch::IntegrationTest
     assert_equal "qr_scan", AnalyticsEvent.named("board_view").last.source
   end
 
+  test "a QR/direct board view also records a totem_scan" do
+    assert_difference -> { AnalyticsEvent.named("totem_scan").count }, 1 do
+      get totem_board_path(@totem.slug)
+    end
+    assert_equal "qr_scan", AnalyticsEvent.named("totem_scan").last.source
+  end
+
+  test "a short-code-sourced board view does not double-count the scan" do
+    # /g/:code already recorded the scan before redirecting here, so the board
+    # must not record a second totem_scan for source=short_code.
+    assert_no_difference -> { AnalyticsEvent.named("totem_scan").count } do
+      get totem_board_path(@totem.slug, source: "short_code")
+    end
+  end
+
+  test "submitting an event records an event_submission tagged with approval state" do
+    assert_difference -> { AnalyticsEvent.named("event_submission").count }, 1 do
+      post totem_event_submissions_path(@totem.slug), params: {
+        event: { title: "Open Mic Night", date: 1.week.from_now.to_date.to_s, time: "19:00" }
+      }
+    end
+    record = AnalyticsEvent.named("event_submission").last
+    assert_equal @totem.id, record.totem_id
+    # Anonymous submissions land in review.
+    assert_equal "pending_review", record.source
+  end
+
   test "viewing an event records an event_view" do
     assert_difference -> { AnalyticsEvent.named("event_view").count }, 1 do
       get totem_event_path(@event.totem.slug, @event.slug)
