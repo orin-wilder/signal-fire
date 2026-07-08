@@ -4,6 +4,9 @@ class User < ApplicationRecord
   enum :auth_method, { email: "email", google: "google", apple: "apple" }
 
   has_one :host_profile, dependent: :destroy
+  # Events this user hosts. The API home feed reads host_user.events; without
+  # this association the feed 500s for anyone following a host.
+  has_many :events, foreign_key: :host_user_id, inverse_of: :host_user
   has_many :host_totem_assignments, class_name: "HostTotemAssignment", foreign_key: :host_user_id, dependent: :destroy
   has_many :assigned_totems, through: :host_totem_assignments, source: :totem
   has_many :check_ins, dependent: :destroy

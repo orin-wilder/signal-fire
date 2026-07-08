@@ -83,10 +83,11 @@ RuboCop (Rails Omakase) is configured, **but** the codebase has de-facto no-spac
 ## Deploy (Render)
 
 - Merging to `main` **auto-deploys** to Render (signalfire.live). No manual step, no gate.
-- `render.yaml` startCommand runs **`rails db:prepare && rails db:seed` on every boot**:
+- `render.yaml` startCommand runs **`rails db:prepare` on every boot**:
   - Migrations run **unattended in production** on deploy — see the `safe-changes` skill before
     writing any migration.
-  - `db/seeds.rb` **must stay idempotent** — it executes on every deploy.
+  - `db:seed` no longer runs on deploy (removed 2026-07: seeds are demo data with well-known
+    passwords) and `db/seeds.rb` no-ops in production. Keep it idempotent for local use.
   - `db:prepare` (not `db:migrate`) is deliberate: Solid Cache/Cable schemas load from schema
     files, not migrations. Don't "simplify" it to db:migrate.
 - Health check path: `/about`. Verify a deploy by curling the production site and checking the

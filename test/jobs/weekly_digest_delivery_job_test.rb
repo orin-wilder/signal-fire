@@ -89,4 +89,37 @@ class WeeklyDigestDeliveryJobTest < ActiveSupport::TestCase
     end
     assert_equal "weekly_digest", captured_data[:type]
   end
+
+  # ── Visibility gate (publicly_visible) ─────────────────────────────────────
+
+  # The digest is a real push built from event titles — an unreviewed submission
+  # must never headline it, even when it's the soonest event.
+  test "pending_review events are excluded from the digest" do
+    user = users(:subscriber_user)
+    user.update_column(:push_token, "ExponentPushToken[sub-token]")
+
+    totems(:main_totem).events.create!(
+      title: "Unreviewed Scouted Event",
+      host_user: users(:host_user),
+      start_time: 30.minutes.from_now,
+      end_time: 90.minutes.from_now,
+      status: "active",
+      provenance: "scouted",
+      approval_state: "pending_review",
+      source_url: "https://example.com/source"
+    )
+
+    captured_body = nil
+    capture_deliver = ->(push_token:, title:, body:, data:) {
+      captured_body = body
+      @ok_result
+    }
+    PushNotificationService.stub(:deliver, capture_deliver) do
+      WeeklyDigestDeliveryJob.new.perform(user.id)
+    end
+
+    assert_no_match(/Unreviewed Scouted Event/, captured_body.to_s)
+    delivery = NotificationDelivery.find_by(notification_type: "weekly_digest", user: user)
+    assert_equal events(:upcoming_event).id, delivery.event_id
+  end
 end

@@ -30,8 +30,12 @@ class Totems::EventsController < ApplicationController
 
   private
 
+  # Pending events stay off the public detail page (and its .ics), but
+  # moderators still need the admin queue's "View" link to work.
   def set_totem_and_event
     @totem = Totem.find_by!(slug: params[:slug])
-    @event = @totem.events.find_by!(slug: params[:event_slug])
+    scope  = @totem.events
+    scope  = scope.publicly_visible unless current_user&.can_moderate_totem?(@totem)
+    @event = scope.find_by!(slug: params[:event_slug])
   end
 end

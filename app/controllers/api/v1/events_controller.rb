@@ -8,7 +8,7 @@ class Api::V1::EventsController < Api::V1::ApplicationController
     totem = Totem.find_by(slug: params[:totem_slug])
     return render json: { error: "Not found" }, status: :not_found unless totem
 
-    event = totem.events.includes(host_user: :host_profile).find_by(slug: params[:event_slug])
+    event = totem.events.publicly_visible.includes(host_user: :host_profile).find_by(slug: params[:event_slug])
     return render json: { error: "Not found" }, status: :not_found unless event
 
     preload_user_event_data([ event ])

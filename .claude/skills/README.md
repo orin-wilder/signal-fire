@@ -16,11 +16,9 @@ paths; when a skill and the code disagree, **the code wins** — fix the skill.
 Suggested reading order for a brand-new contributor: codebase-map → dev-loop →
 project-compass, then event-domain + safe-changes before your first PR.
 
-Known gaps in the code (found during handoff, deliberately documented rather than
-silently fixed — full detail in `safe-changes` and `event-domain`): six read paths
-skip the `publicly_visible` gate (event detail pages, host profiles web+API, the
-mobile home feed, and the weekly digest — which can push unreviewed content); the
-API event serializer can 500 on host-less events; API serializers hardcode
-`signalfire.live` URLs; admin-console events silently carry `host` provenance and
-do notify; `Event#weekly?` misreads `INTERVAL=10..19`; cancelling a recurring
+Known gaps in the code (found during handoff; the visibility-gate leaks, the
+serializer 500, and the admin-provenance quirk were fixed 2026-07 in the
+trust-gate hardening PR — full detail in `safe-changes` and `event-domain`).
+Still open: API serializers hardcode `signalfire.live` URLs (owned by the brand
+isolation PR); `Event#weekly?` misreads `INTERVAL=10..19`; cancelling a recurring
 event sends no cancellation notice.

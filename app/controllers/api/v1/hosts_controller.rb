@@ -9,6 +9,7 @@ class Api::V1::HostsController < Api::V1::ApplicationController
     host_user = host_profile.user
 
     upcoming_events = Event
+      .publicly_visible
       .where(host_user: host_user, status: :active)
       .where("start_time > ?", Time.current)
       .includes(:totem)

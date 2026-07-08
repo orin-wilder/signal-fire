@@ -13,7 +13,7 @@ class WeeklyDigestDeliveryJob < ApplicationJob
 
     week_ahead = Time.current..(Time.current + 7.days)
 
-    personal_events = Event.active
+    personal_events = Event.active.publicly_visible
       .where(start_time: week_ahead)
       .where(
         "totem_id IN (?) OR host_user_id IN (?)",
@@ -22,7 +22,7 @@ class WeeklyDigestDeliveryJob < ApplicationJob
       .includes(:totem, :host_user)
       .order(:start_time)
 
-    city_events = Event.active
+    city_events = Event.active.publicly_visible
       .where(start_time: week_ahead)
       .where(totem: Totem.city_board_visible.for_city("stpete"))
       .where.not(id: personal_events.pluck(:id))

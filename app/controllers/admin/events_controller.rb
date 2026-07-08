@@ -32,6 +32,10 @@ class Admin::EventsController < Admin::ApplicationController
     @event = Event.new(event_params)
     @event.host_user        = host
     @event.created_by_admin = true
+    # Staff-entered events are labeled honestly and never fan out notifications
+    # (Event#enqueue_new_event_jobs only fires for host provenance). Ruled by
+    # Ryan 2026-07-08 — previously these silently kept the "host" default.
+    @event.provenance       = "admin"
 
     if @event.save
       redirect_to admin_events_path, notice: "Event created."

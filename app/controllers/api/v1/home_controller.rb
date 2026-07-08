@@ -84,13 +84,14 @@ class Api::V1::HomeController < Api::V1::ApplicationController
 
     totem_list = totems.map do |totem|
       active_events = totem.events.select { |e|
-        e.active? && e.start_time <= window_end + Event::CHECKIN_WINDOW_AFTER_MINUTES.minutes &&
+        e.active? && e.publicly_visible? &&
+          e.start_time <= window_end + Event::CHECKIN_WINDOW_AFTER_MINUTES.minutes &&
           e.end_time >= window_end - (Event::CHECKIN_WINDOW_AFTER_MINUTES * 2).minutes
       }
       active_now = active_events.min_by { |e| e.start_time <= now && e.end_time >= now ? 0 : 1 }
 
       upcoming = totem.events
-        .select { |e| e.active? && !active_events.include?(e) }
+        .select { |e| e.active? && e.publicly_visible? && !active_events.include?(e) }
         .select { |e| e.next_occurrence > window_end }
         .min_by(&:next_occurrence)
 
@@ -115,14 +116,14 @@ class Api::V1::HomeController < Api::V1::ApplicationController
   def yours_next_event_for_totem(totem)
     threshold = Time.current + Event::CHECKIN_WINDOW_BEFORE_MINUTES.minutes
     totem.events
-      .select { |e| e.active? && e.next_occurrence > threshold }
+      .select { |e| e.active? && e.publicly_visible? && e.next_occurrence > threshold }
       .min_by(&:next_occurrence)
   end
 
   def yours_next_event_for_host(host_user)
     threshold = Time.current + Event::CHECKIN_WINDOW_BEFORE_MINUTES.minutes
     host_user.events
-      .select { |e| e.active? && e.next_occurrence > threshold }
+      .select { |e| e.active? && e.publicly_visible? && e.next_occurrence > threshold }
       .min_by(&:next_occurrence)
   end
 
