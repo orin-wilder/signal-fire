@@ -1,6 +1,14 @@
 # Idempotent seed data for local development.
 # Run with: bin/rails db:seed
 
+# Every account below shares the well-known password "password" — this data
+# must never (re)load in production. render.yaml no longer runs db:seed, and
+# this guard is the backstop in case that ever changes.
+if Rails.env.production? && ENV["ALLOW_PROD_SEED"].blank?
+  puts "Skipping seeds: demo data is not production-safe (set ALLOW_PROD_SEED=1 to override deliberately)."
+  return
+end
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

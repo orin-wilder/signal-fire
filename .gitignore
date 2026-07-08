@@ -43,3 +43,4 @@ memory/
 .DS_Store
 docs/
 .env
+.claude/settings.local.json
