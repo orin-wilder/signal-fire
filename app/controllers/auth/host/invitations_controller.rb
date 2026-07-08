@@ -1,4 +1,8 @@
 class Auth::Host::InvitationsController < ApplicationController
+  # Invitation-token brute-force guard (both actions look tokens up).
+  rate_limit to: 30, within: 15.minutes, store: RateLimitStore,
+    with: -> { redirect_to host_login_path, alert: "Too many attempts. Please wait a few minutes and try again." }
+
   def edit
     @host_profile = find_valid_profile
     render :invalid_token unless @host_profile

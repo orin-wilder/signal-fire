@@ -2,6 +2,9 @@ require "net/http"
 require "cgi"
 
 class Api::V1::Auth::GoogleController < ActionController::API
+  # Each call proxies to Google's tokeninfo endpoint; default with: raises → 429.
+  rate_limit to: 15, within: 3.minutes, only: :create, store: RateLimitStore
+
   GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
 
   def create

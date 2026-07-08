@@ -1,4 +1,10 @@
 class Auth::Host::MagicLinksController < ApplicationController
+  # Email-bombing guard (create sends mail) and token brute-force guard (verify).
+  rate_limit to: 5, within: 15.minutes, only: :create, store: RateLimitStore, name: "send",
+    with: -> { redirect_to host_magic_link_path, alert: "Too many attempts. Please wait a few minutes and try again." }
+  rate_limit to: 30, within: 15.minutes, only: :verify, store: RateLimitStore, name: "verify",
+    with: -> { redirect_to host_login_path, alert: "Too many attempts. Please wait a few minutes and try again." }
+
   def new
   end
 

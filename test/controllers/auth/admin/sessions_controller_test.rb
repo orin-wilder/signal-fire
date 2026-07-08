@@ -40,4 +40,18 @@ class Auth::Admin::SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_nil session[:user_id]
     assert_redirected_to admin_login_path
   end
+
+  # Rate limiting (cache-backed; swap the null_store for a real one)
+  test "POST /admin/login is rate limited per IP after 10 attempts" do
+    store = ActiveSupport::Cache::MemoryStore.new
+    Rails.stub(:cache, store) do
+      10.times do
+        post admin_login_path, params: { email: "admin@example.com", password: "wrongpassword" }
+        assert_response :unprocessable_entity
+      end
+      post admin_login_path, params: { email: "admin@example.com", password: "wrongpassword" }
+      assert_redirected_to admin_login_path
+      assert_match(/too many attempts/i, flash[:alert])
+    end
+  end
 end

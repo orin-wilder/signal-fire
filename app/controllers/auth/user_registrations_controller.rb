@@ -1,4 +1,8 @@
 class Auth::UserRegistrationsController < ApplicationController
+  # Mass-signup / magic-link email guard.
+  rate_limit to: 10, within: 15.minutes, only: :create, store: RateLimitStore,
+    with: -> { redirect_to sign_up_path, alert: "Too many attempts. Please wait a few minutes and try again." }
+
   def new
     @user = User.new
   end

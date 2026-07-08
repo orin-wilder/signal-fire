@@ -13,7 +13,7 @@ Every push to `main` deploys to production **unattended**. This skill lists the 
 - `startCommand: bundle exec rails db:prepare && rails server` — **migrations run on every deploy, against prod data, with nobody watching.** (`db:seed` was removed from the startCommand 2026-07 — seeds are demo data with well-known passwords, and additionally no-op in production.)
   - `db:prepare` (not `db:migrate`) is deliberate: Solid Cache/Cable schemas load from `db/cache_schema.rb` etc., not migrations. Don't "simplify" it to `db:migrate` — the cache-backed submission throttle 500s without `solid_cache_entries`.
   - A bad migration = prod down until you fix forward. There is no staging environment.
-- `healthCheckPath: /about` — breaking that route breaks deploys.
+- `healthCheckPath: /up` (Rails' built-in liveness endpoint; switched from `/about` 2026-07). `/about` must still resolve — it's a public route contract — but it is no longer the health check.
 
 ## The DO-NOT-BREAK list
 

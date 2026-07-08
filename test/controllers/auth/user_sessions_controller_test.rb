@@ -64,6 +64,32 @@ class Auth::UserSessionsControllerTest < ActionDispatch::IntegrationTest
     assert_match /sent you a sign-in link/i, flash[:notice]
   end
 
+  # --- Rate limiting (cache-backed; swap the null_store for a real one) ---
+
+  test "POST /sign_in is rate limited per IP after 10 attempts" do
+    store = ActiveSupport::Cache::MemoryStore.new
+    Rails.stub(:cache, store) do
+      10.times do
+        post sign_in_path, params: { email: "nobody@example.com", password: "wrong" }
+        assert_response :unprocessable_entity
+      end
+      post sign_in_path, params: { email: "nobody@example.com", password: "wrong" }
+      assert_redirected_to sign_in_path
+      assert_match(/too many attempts/i, flash[:alert])
+    end
+  end
+
+  test "rate limit fails open when the cache backend raises" do
+    failing_cache = Class.new do
+      def increment(*, **) = raise(ActiveRecord::StatementInvalid, "cache down")
+    end.new
+    user = users(:regular_user)
+    Rails.stub(:cache, failing_cache) do
+      post sign_in_path, params: { email: user.email, password: "password123" }
+      assert_redirected_to about_path
+    end
+  end
+
   # --- Sign out ---
 
   test "DELETE /sign_out clears session and redirects" do

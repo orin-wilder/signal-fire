@@ -7,6 +7,10 @@ class Totems::EventPhotoExtractionsController < ApplicationController
   THROTTLE_LIMIT  = 5
   THROTTLE_WINDOW = 1.hour
 
+  # Cap what we forward to the paid vision model. Base64 inflates ~4/3, so this
+  # allows roughly a 6 MB photo — far above any reasonable flyer shot.
+  MAX_IMAGE_BYTES = 8.megabytes
+
   # POST /t/:slug/events/from_photo — read an event off a flyer photo and return
   # JSON to PRE-FILL the submission form. The image is never persisted; the
   # extracted data still flows through the normal create path + approval gate.
@@ -18,6 +22,10 @@ class Totems::EventPhotoExtractionsController < ApplicationController
     image = params[:image].to_s
     unless image.start_with?("data:image/")
       return render json: { error: "Attach a photo of the event." }, status: :unprocessable_entity
+    end
+
+    if image.bytesize > MAX_IMAGE_BYTES
+      return render json: { error: "That photo is too large — try a smaller one." }, status: 413
     end
 
     result = Ai::EventImageExtractor.call(image_data_url: image)

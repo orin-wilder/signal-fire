@@ -75,6 +75,19 @@ class Api::V1::Auth::SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal user.is_host,     identified.first[1][:is_host]
   end
 
+  # Rate limiting (cache-backed; swap the null_store for a real one)
+  test "POST /api/v1/auth/sign_in returns 429 after 15 attempts" do
+    store = ActiveSupport::Cache::MemoryStore.new
+    Rails.stub(:cache, store) do
+      15.times do
+        post api_v1_auth_sign_in_path, params: { email: "nobody@example.com", password: "wrong" }, as: :json
+        assert_response :unauthorized
+      end
+      post api_v1_auth_sign_in_path, params: { email: "nobody@example.com", password: "wrong" }, as: :json
+      assert_response :too_many_requests
+    end
+  end
+
   test "POST /api/v1/auth/sign_in does not identify on failed sign-in" do
     identified = []
     AnalyticsService.stub(:identify, ->(id, **traits) { identified << [id, traits] }) do
