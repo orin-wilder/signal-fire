@@ -1,4 +1,7 @@
 class Api::V1::Auth::SessionsController < ActionController::API
+  # Credential-stuffing guard; default with: raises → 429.
+  rate_limit to: 15, within: 3.minutes, only: :create, store: RateLimitStore
+
   def create
     user = User.find_by(email: params[:email]&.downcase)
 

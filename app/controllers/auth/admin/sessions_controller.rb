@@ -1,4 +1,8 @@
 class Auth::Admin::SessionsController < ApplicationController
+  # Brute-force guard on the admin console login.
+  rate_limit to: 10, within: 3.minutes, only: :create, store: RateLimitStore,
+    with: -> { redirect_to admin_login_path, alert: "Too many attempts. Please wait a few minutes and try again." }
+
   def new
     redirect_to admin_root_path if signed_in? && current_user.is_admin?
   end

@@ -90,7 +90,7 @@ RuboCop (Rails Omakase) is configured, **but** the codebase has de-facto no-spac
     passwords) and `db/seeds.rb` no-ops in production. Keep it idempotent for local use.
   - `db:prepare` (not `db:migrate`) is deliberate: Solid Cache/Cable schemas load from schema
     files, not migrations. Don't "simplify" it to db:migrate.
-- Health check path: `/about`. Verify a deploy by curling the production site and checking the
+- Health check path: `/up` (Rails liveness endpoint). Verify a deploy by curling the production site and checking the
   feature landed; there is no staging environment.
 
 ## Dev servers & email

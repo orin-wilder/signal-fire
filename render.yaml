@@ -21,7 +21,9 @@ services:
     # db:seed deliberately removed (2026-07): seeds are demo/dev data with
     # well-known passwords and must never run against production.
     startCommand: bundle exec rails db:prepare && bundle exec rails server -p $PORT -e $RAILS_ENV
-    healthCheckPath: /about
+    # Rails' built-in liveness endpoint — cheap, no full page render. /about must
+    # also keep resolving (public route contract), but it is not the health check.
+    healthCheckPath: /up
     envVars:
       - key: RAILS_ENV
         value: production

@@ -1,4 +1,8 @@
 class Auth::UserSessionsController < ApplicationController
+  # Brute-force / magic-link-bombing guard (create covers both sign-in paths).
+  rate_limit to: 10, within: 3.minutes, only: :create, store: RateLimitStore,
+    with: -> { redirect_to sign_in_path, alert: "Too many attempts. Please wait a few minutes and try again." }
+
   def new
   end
 

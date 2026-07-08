@@ -1,4 +1,7 @@
 class Api::V1::Auth::RegistrationsController < ActionController::API
+  # Mass-signup guard; default with: raises → 429.
+  rate_limit to: 15, within: 3.minutes, only: :create, store: RateLimitStore
+
   def create
     user = User.new(
       email: params[:email]&.downcase,

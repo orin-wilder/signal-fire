@@ -50,6 +50,19 @@ class Totems::EventPhotoExtractionsControllerTest < ActionDispatch::IntegrationT
     assert_response :success
   end
 
+  # The image is forwarded to a paid vision model — oversized payloads are
+  # rejected before the AI call.
+  test "rejects an oversized image without calling the extractor" do
+    called = false
+    huge = "data:image/jpeg;base64," +
+      ("a" * (Totems::EventPhotoExtractionsController::MAX_IMAGE_BYTES + 1))
+    Ai::EventImageExtractor.stub(:call, ->(**) { called = true; ok_result({ "title" => "Y" }) }) do
+      post totem_event_from_photo_path(@totem.slug), params: { image: huge }, as: :json
+    end
+    assert_response 413
+    assert_not called
+  end
+
   test "unknown totem returns 404" do
     post totem_event_from_photo_path("no-such-totem"), params: { image: DATA_URL }, as: :json
     assert_response :not_found
