@@ -74,20 +74,26 @@ module EventNotificationFanout
     end
   end
 
-  def deliver_to(user:, event:, notification_type:, source_type:, title:, body:)
-    return if NotificationDelivery.exists?(
-      user_id: user.id,
-      event_id: event.id,
-      notification_type: notification_type
-    )
-
-    delivery = NotificationDelivery.create!(
-      user: user,
-      event: event,
-      notification_type: notification_type,
-      source_type: source_type,
-      sent_at: Time.current
-    )
+  # Creates the delivery record BEFORE pushing, so the unique index — not a
+  # check-then-create race — decides whether this notification was already
+  # sent. occurrence_date scopes dedup to one occurrence of a recurring event;
+  # leave it nil for once-ever types.
+  def deliver_to(user:, event:, notification_type:, source_type:, title:, body:, occurrence_date: nil)
+    begin
+      delivery = NotificationDelivery.create!(
+        user: user,
+        event: event,
+        notification_type: notification_type,
+        source_type: source_type,
+        occurrence_date: occurrence_date,
+        sent_at: Time.current
+      )
+    rescue ActiveRecord::RecordNotUnique
+      return nil # a concurrent worker won the race — already sent
+    rescue ActiveRecord::RecordInvalid => e
+      raise unless e.record.errors.of_kind?(:user_id, :taken)
+      return nil # already sent
+    end
 
     return unless user.push_token.present?
 

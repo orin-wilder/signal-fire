@@ -90,6 +90,35 @@ class WeeklyDigestDeliveryJobTest < ActiveSupport::TestCase
     assert_equal "weekly_digest", captured_data[:type]
   end
 
+  # ── Idempotency ─────────────────────────────────────────────────────────────
+
+  test "re-run in the same week does not double-push" do
+    user = users(:subscriber_user)
+    user.update_column(:push_token, "ExponentPushToken[sub-token]")
+
+    pushes = 0
+    PushNotificationService.stub(:deliver, ->(**) { pushes += 1; @ok_result }) do
+      WeeklyDigestDeliveryJob.new.perform(user.id)
+      WeeklyDigestDeliveryJob.new.perform(user.id)
+    end
+
+    assert_equal 1, pushes
+    assert_equal 1, NotificationDelivery.weekly_digest.where(user: user).count
+  end
+
+  test "delivery is recorded before the push so a crashed run cannot double-send" do
+    user = users(:subscriber_user)
+    user.update_column(:push_token, "ExponentPushToken[sub-token]")
+
+    PushNotificationService.stub(:deliver, ->(**) { raise Errno::ECONNRESET }) do
+      assert_raises(Errno::ECONNRESET) { WeeklyDigestDeliveryJob.new.perform(user.id) }
+    end
+
+    assert NotificationDelivery.weekly_digest.exists?(
+      user_id: user.id, occurrence_date: Date.current.beginning_of_week
+    )
+  end
+
   # ── Visibility gate (publicly_visible) ─────────────────────────────────────
 
   # The digest is a real push built from event titles — an unreviewed submission

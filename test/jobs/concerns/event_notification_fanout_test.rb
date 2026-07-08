@@ -80,4 +80,61 @@ class EventNotificationFanoutTest < ActiveSupport::TestCase
     end
     assert_not delivered
   end
+
+  # --- occurrence-aware dedup ---
+
+  def deliver(occurrence_date: nil)
+    @fanout.deliver_to(
+      user: @user, event: @event, notification_type: :reminder,
+      source_type: :host_follow, occurrence_date: occurrence_date,
+      title: "T", body: "B"
+    )
+  end
+
+  test "deliver_to suppresses a second send for the same occurrence" do
+    ok = PushNotificationService::Result.new(ok: true, error: nil)
+    PushNotificationService.stub(:deliver, ok) do
+      assert_difference "NotificationDelivery.count", 1 do
+        first  = deliver(occurrence_date: Date.current)
+        second = deliver(occurrence_date: Date.current)
+        assert_kind_of NotificationDelivery, first
+        assert_nil second
+      end
+    end
+  end
+
+  test "deliver_to sends again for a different occurrence of the same event" do
+    ok = PushNotificationService::Result.new(ok: true, error: nil)
+    PushNotificationService.stub(:deliver, ok) do
+      assert_difference "NotificationDelivery.count", 2 do
+        deliver(occurrence_date: Date.current)
+        deliver(occurrence_date: Date.current + 7)
+      end
+    end
+  end
+
+  test "deliver_to with nil occurrence_date stays once-ever" do
+    ok = PushNotificationService::Result.new(ok: true, error: nil)
+    PushNotificationService.stub(:deliver, ok) do
+      assert_difference "NotificationDelivery.count", 1 do
+        deliver
+        deliver
+      end
+    end
+  end
+
+  test "deliver_to records the delivery before pushing so a retry cannot double-push" do
+    PushNotificationService.stub(:deliver, ->(**) { raise Errno::ECONNRESET }) do
+      assert_raises(Errno::ECONNRESET) { deliver(occurrence_date: Date.current) }
+    end
+    assert NotificationDelivery.exists?(
+      user_id: @user.id, event_id: @event.id, notification_type: "reminder"
+    )
+    # the retry finds the row and skips the push
+    delivered = false
+    PushNotificationService.stub(:deliver, ->(**) { delivered = true }) do
+      assert_nil deliver(occurrence_date: Date.current)
+    end
+    assert_not delivered
+  end
 end

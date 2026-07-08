@@ -43,10 +43,34 @@ class PreEventReminderJobTest < ActiveSupport::TestCase
     end
   end
 
-  test "enqueues next reminder for weekly event" do
+  test "enqueues next reminder for weekly event with the next occurrence date" do
     weekly = events(:weekly_event)
-    assert_enqueued_with(job: PreEventReminderJob, args: [weekly.id]) do
+    expected_date = (weekly.next_occurrence + 1.week).to_date
+    assert_enqueued_with(job: PreEventReminderJob, args: [ weekly.id, expected_date ]) do
       PreEventReminderJob.new.perform(weekly.id)
+    end
+  end
+
+  # The old dedup ignored occurrences, so a weekly reminder fired once ever;
+  # each occurrence must now notify (and stay idempotent within an occurrence).
+  test "weekly reminders fire for each occurrence instead of once ever" do
+    weekly = events(:weekly_event)
+    # subscriber_user follows host_user with notify_reminder and, with this
+    # check-in, is a prior attendee at this totem — the recurring-event filter
+    CheckIn.create!(user: users(:subscriber_user), event: events(:upcoming_event))
+
+    first_occurrence = weekly.next_occurrence.to_date
+
+    assert_difference "NotificationDelivery.where(notification_type: 'reminder').count", 1 do
+      PreEventReminderJob.new.perform(weekly.id, first_occurrence)
+    end
+
+    assert_no_difference "NotificationDelivery.count" do
+      PreEventReminderJob.new.perform(weekly.id, first_occurrence)
+    end
+
+    assert_difference "NotificationDelivery.where(notification_type: 'reminder').count", 1 do
+      PreEventReminderJob.new.perform(weekly.id, first_occurrence + 7)
     end
   end
 
