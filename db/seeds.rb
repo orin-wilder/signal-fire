@@ -222,6 +222,7 @@ end
 # ---------------------------------------------------------------------------
 # Weekly recurring events (normal / upcoming board state)
 Event.find_or_create_by!(slug: "waterfront-north-sunday-mass-ecstatic-dance") do |e|
+  e.approval_state = :published
   e.totem         = waterfront
   e.host_user     = maria
   e.title         = "Sunday Mass — Ecstatic Dance"
@@ -236,6 +237,7 @@ Event.find_or_create_by!(slug: "waterfront-north-sunday-mass-ecstatic-dance") do
 end
 
 Event.find_or_create_by!(slug: "waterfront-north-acroyoga-jam") do |e|
+  e.approval_state = :published
   e.totem         = waterfront
   e.host_user     = priya
   e.title         = "AcroYoga Jam"
@@ -250,6 +252,7 @@ Event.find_or_create_by!(slug: "waterfront-north-acroyoga-jam") do |e|
 end
 
 Event.find_or_create_by!(slug: "waterfront-north-meditation-circle") do |e|
+  e.approval_state = :published
   e.totem         = waterfront
   e.host_user     = lena
   e.title         = "Meditation Circle"
@@ -264,6 +267,7 @@ Event.find_or_create_by!(slug: "waterfront-north-meditation-circle") do |e|
 end
 
 Event.find_or_create_by!(slug: "waterfront-north-sand-volleyball") do |e|
+  e.approval_state = :published
   e.totem         = waterfront
   e.host_user     = coach_j
   e.title         = "Sand Volleyball"
@@ -278,6 +282,7 @@ end
 
 # One-time upcoming event (tests one-time card rendering)
 Event.find_or_create_by!(slug: "waterfront-north-coffee-circle") do |e|
+  e.approval_state = :published
   e.totem         = waterfront
   e.host_user     = devon
   e.title         = "Coffee Circle"
@@ -292,6 +297,7 @@ end
 
 # Happening-now event (tests active-now card + check-in flow)
 happening_now = Event.find_or_create_by!(slug: "waterfront-north-ecstatic-dance-now") do |e|
+  e.approval_state = :published
   e.totem         = waterfront
   e.host_user     = maria
   e.title         = "Ecstatic Dance"
@@ -307,6 +313,7 @@ end
 
 # Starting-soon event (tests starting-soon card state)
 Event.find_or_create_by!(slug: "waterfront-north-coffee-circle-soon") do |e|
+  e.approval_state = :published
   e.totem         = waterfront
   e.host_user     = devon
   e.title         = "Coffee Circle"
@@ -321,6 +328,7 @@ end
 
 # Just-ended event (tests just-ended card + grace-window check-in)
 Event.find_or_create_by!(slug: "waterfront-north-sunrise-meditation") do |e|
+  e.approval_state = :published
   e.totem         = waterfront
   e.host_user     = lena
   e.title         = "Sunrise Meditation"
@@ -336,6 +344,7 @@ end
 
 # Cancelled event (tests cancelled banner + chat button behaviour)
 Event.find_or_create_by!(slug: "waterfront-north-volleyball-tournament") do |e|
+  e.approval_state = :published
   e.totem         = waterfront
   e.host_user     = coach_j
   e.title         = "Volleyball Tournament"
@@ -355,6 +364,7 @@ AnonymousCheckInCount.find_or_create_by!(event: happening_now) { |c| c.count = 7
 # ---------------------------------------------------------------------------
 
 north_shore_pickup = Event.find_or_create_by!(slug: "north-shore-courts-thursday-pickup") do |e|
+  e.approval_state = :published
   e.totem         = north_shore
   e.host_user     = coach_j
   e.title         = "Thursday Pickup"
@@ -372,6 +382,7 @@ end
 # ---------------------------------------------------------------------------
 
 Event.find_or_create_by!(slug: "riverside-runners-saturday-long-run") do |e|
+  e.approval_state = :published
   e.totem         = main_totem
   e.host_user     = host
   e.title         = "Saturday Long Run"
@@ -386,6 +397,7 @@ Event.find_or_create_by!(slug: "riverside-runners-saturday-long-run") do |e|
 end
 
 Event.find_or_create_by!(slug: "riverside-runners-thursday-track-workout") do |e|
+  e.approval_state = :published
   e.totem         = main_totem
   e.host_user     = host
   e.title         = "Thursday Track Workout"
@@ -399,6 +411,7 @@ Event.find_or_create_by!(slug: "riverside-runners-thursday-track-workout") do |e
 end
 
 active_event = Event.find_or_create_by!(slug: "riverside-runners-morning-shakeout") do |e|
+  e.approval_state = :published
   e.totem         = main_totem
   e.host_user     = host
   e.title         = "Morning Shakeout"
@@ -412,6 +425,7 @@ active_event = Event.find_or_create_by!(slug: "riverside-runners-morning-shakeou
 end
 
 Event.find_or_create_by!(slug: "riverside-runners-cancelled-run") do |e|
+  e.approval_state = :published
   e.totem         = main_totem
   e.host_user     = host
   e.title         = "Cancelled Run"
@@ -435,6 +449,7 @@ AnonymousCheckInCount.find_or_create_by!(event: active_event) { |c| c.count = 12
 
 # ── 1. Sunday Mass — big turnout, good chart shape ──────────────────────────
 sunday_mass_past = Event.find_or_create_by!(slug: "waterfront-north-sunday-mass-past") do |e|
+  e.approval_state = :published
   e.totem           = waterfront
   e.host_user       = maria
   e.title           = "Sunday Mass — Ecstatic Dance"
@@ -467,6 +482,7 @@ end
 
 # ── 2. AcroYoga Jam — medium turnout ────────────────────────────────────────
 acroyoga_past = Event.find_or_create_by!(slug: "waterfront-north-acroyoga-past") do |e|
+  e.approval_state = :published
   e.totem           = waterfront
   e.host_user       = priya
   e.title           = "AcroYoga Jam"
@@ -497,6 +513,7 @@ end
 
 # ── 3. Thursday Track (Riverside) — small turnout ───────────────────────────
 track_past = Event.find_or_create_by!(slug: "riverside-runners-thursday-track-past") do |e|
+  e.approval_state = :published
   e.totem           = main_totem
   e.host_user       = host
   e.title           = "Thursday Track Workout"
@@ -527,6 +544,7 @@ end
 
 # ── 4. Meditation Circle — no check-ins (zero state) ────────────────────────
 Event.find_or_create_by!(slug: "waterfront-north-meditation-past") do |e|
+  e.approval_state = :published
   e.totem           = waterfront
   e.host_user       = lena
   e.title           = "Meditation Circle"
@@ -541,6 +559,7 @@ end
 
 # ── 5. North Shore Thursday Pickup — no check-ins (zero state) ──────────────
 Event.find_or_create_by!(slug: "north-shore-courts-pickup-past") do |e|
+  e.approval_state = :published
   e.totem           = north_shore
   e.host_user       = coach_j
   e.title           = "Thursday Pickup"

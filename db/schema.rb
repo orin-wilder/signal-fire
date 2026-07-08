@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_08_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_08_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -55,11 +55,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_08_000002) do
     t.string "email", null: false
     t.bigint "totem_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["totem_id", "email"], name: "index_empty_totem_email_captures_on_totem_id_and_email", unique: true
     t.index ["totem_id"], name: "index_empty_totem_email_captures_on_totem_id"
   end
 
   create_table "events", force: :cascade do |t|
-    t.string "approval_state", default: "published", null: false
+    t.string "approval_state", default: "pending_review", null: false
     t.string "chat_platform"
     t.string "chat_url"
     t.text "community_norms"
@@ -95,6 +96,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_08_000002) do
     t.boolean "notify_reminder", default: true, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["host_user_id"], name: "index_host_follows_on_host_user_id"
     t.index ["user_id", "host_user_id"], name: "index_host_follows_on_user_id_and_host_user_id", unique: true
   end
 

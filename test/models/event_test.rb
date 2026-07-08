@@ -40,6 +40,11 @@ class EventTest < ActiveSupport::TestCase
     assert_not event.active_now?
   end
 
+  # Safe-by-default: publishing must be an explicit act on every create path.
+  test "approval_state defaults to pending_review" do
+    assert Event.new.approval_state_pending_review?
+  end
+
   # one_time? / recurring? / weekly?
   test "one_time? true when recurrence_rule is nil" do
     assert build_event(recurrence_rule: nil).one_time?

@@ -36,6 +36,8 @@ class Admin::EventsController < Admin::ApplicationController
     # (Event#enqueue_new_event_jobs only fires for host provenance). Ruled by
     # Ryan 2026-07-08 — previously these silently kept the "host" default.
     @event.provenance       = "admin"
+    # The column default is pending_review; publishing is an explicit act.
+    @event.approval_state   = "published"
 
     if @event.save
       redirect_to admin_events_path, notice: "Event created."
