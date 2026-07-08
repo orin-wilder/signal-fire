@@ -17,5 +17,8 @@ class NotificationDelivery < ApplicationRecord
 
   validates :notification_type, presence: true
   validates :source_type, presence: true
-  validates :user_id, uniqueness: { scope: [ :event_id, :notification_type ] }
+  # occurrence_date is nil for once-ever types (new_event, cancelled,
+  # first_stranger); the backing index is NULLS NOT DISTINCT so nil rows still
+  # dedup at the database level.
+  validates :user_id, uniqueness: { scope: [ :event_id, :notification_type, :occurrence_date ] }
 end

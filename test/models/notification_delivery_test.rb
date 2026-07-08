@@ -49,6 +49,53 @@ class NotificationDeliveryTest < ActiveSupport::TestCase
     assert other.valid?
   end
 
+  test "same user + event + type with different occurrence dates is valid" do
+    NotificationDelivery.create!(
+      user: users(:regular_user),
+      event: events(:weekly_event),
+      notification_type: :reminder,
+      source_type: :totem_favorite,
+      occurrence_date: Date.current
+    )
+    next_week = build_delivery(
+      event: events(:weekly_event),
+      notification_type: :reminder,
+      occurrence_date: Date.current + 7
+    )
+    assert next_week.valid?
+  end
+
+  test "duplicate user + event + type + occurrence_date is invalid" do
+    NotificationDelivery.create!(
+      user: users(:regular_user),
+      event: events(:weekly_event),
+      notification_type: :reminder,
+      source_type: :totem_favorite,
+      occurrence_date: Date.current
+    )
+    duplicate = build_delivery(
+      event: events(:weekly_event),
+      notification_type: :reminder,
+      occurrence_date: Date.current
+    )
+    assert_not duplicate.valid?
+    assert duplicate.errors[:user_id].any?
+  end
+
+  test "database index blocks duplicate nil-occurrence rows even when validations are skipped" do
+    attrs = {
+      user_id: users(:regular_user).id,
+      event_id: events(:upcoming_event).id,
+      notification_type: "new_event",
+      source_type: "totem_favorite",
+      sent_at: Time.current
+    }
+    NotificationDelivery.create!(attrs)
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      NotificationDelivery.new(attrs).save!(validate: false)
+    end
+  end
+
   test "new_event? predicate" do
     assert build_delivery(notification_type: :new_event).new_event?
   end

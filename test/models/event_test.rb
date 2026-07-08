@@ -57,6 +57,14 @@ class EventTest < ActiveSupport::TestCase
     assert_not build_event(recurrence_rule: "FREQ=WEEKLY;INTERVAL=2;BYDAY=MO").weekly?
   end
 
+  test "weekly? true when INTERVAL=1 is explicit" do
+    assert build_event(recurrence_rule: "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO").weekly?
+  end
+
+  test "weekly? false for double-digit intervals" do
+    assert_not build_event(recurrence_rule: "FREQ=WEEKLY;INTERVAL=10;BYDAY=MO").weekly?
+  end
+
   test "weekly? false for monthly RRULE" do
     assert_not build_event(recurrence_rule: "FREQ=MONTHLY;BYDAY=1MO").weekly?
   end
@@ -76,6 +84,20 @@ class EventTest < ActiveSupport::TestCase
   test "nil recurrence_rule is valid (one-time event)" do
     event = build_event(recurrence_rule: nil)
     assert event.valid?
+  end
+
+  # The format check only vets the FREQ= prefix; the rest must actually parse.
+  test "RRULE with a valid FREQ prefix but unparseable body fails validation" do
+    event = build_event(recurrence_rule: "FREQ=WEEKLY;BYDAY=BANANA")
+    assert_not event.valid?
+    assert event.errors[:recurrence_rule].any?
+  end
+
+  test "next_occurrence falls back to start_time when a persisted rule cannot parse" do
+    event = events(:weekly_event)
+    event.update_column(:recurrence_rule, "FREQ=WEEKLY;BYDAY=BANANA")
+    event.reload
+    assert_equal event.start_time, event.next_occurrence
   end
 
   # next_occurrence

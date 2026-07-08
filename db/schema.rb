@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_08_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_08_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -137,13 +137,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_08_000001) do
     t.bigint "event_id", null: false
     t.string "notification_subtype"
     t.string "notification_type", null: false
+    t.date "occurrence_date"
     t.datetime "opened_at"
     t.datetime "sent_at"
     t.string "source_type", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["event_id"], name: "index_notification_deliveries_on_event_id"
-    t.index ["user_id", "event_id", "notification_type"], name: "idx_on_user_id_event_id_notification_type_be0601ef91"
+    t.index ["user_id", "event_id", "notification_type", "occurrence_date"], name: "idx_notification_deliveries_dedup", unique: true, nulls_not_distinct: true
     t.index ["user_id"], name: "index_notification_deliveries_on_user_id"
   end
 

@@ -3,6 +3,11 @@ class WeeklyDigestDeliveryJob < ApplicationJob
 
   def perform(user_id)
     user = User.find(user_id)
+    week_key = Date.current.beginning_of_week
+
+    if NotificationDelivery.weekly_digest.exists?(user_id: user.id, occurrence_date: week_key)
+      return log_skip(user.id, "already_sent_this_week")
+    end
 
     favorite_totem_ids = TotemFavorite.where(user: user).pluck(:totem_id)
     followed_host_ids  = HostFollow.where(user: user).pluck(:host_user_id)
@@ -42,20 +47,22 @@ class WeeklyDigestDeliveryJob < ApplicationJob
       "#{first.title} and #{all_events.size - 1} more happening in St. Pete this week."
     end
 
+    # Record the delivery BEFORE pushing so a job re-run can't double-push.
+    source = personal_events.any? ? :host_follow : :totem_favorite
+    NotificationDelivery.create!(
+      user:              user,
+      event:             first,
+      notification_type: :weekly_digest,
+      source_type:       source,
+      occurrence_date:   week_key,
+      sent_at:           Time.current
+    )
+
     PushNotificationService.deliver(
       push_token: user.push_token,
       title: "What's happening this week",
       body:  body,
       data:  { type: "weekly_digest" }
-    )
-
-    source = personal_events.any? ? :host_follow : :totem_favorite
-    NotificationDelivery.create(
-      user:              user,
-      event:             first,
-      notification_type: :weekly_digest,
-      source_type:       source,
-      sent_at:           Time.current
     )
 
     AnalyticsService.track("weekly_digest_sent",

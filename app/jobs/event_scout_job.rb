@@ -3,7 +3,10 @@ class EventScoutJob < ApplicationJob
 
   def perform(scout_run_id)
     run = ScoutRun.find_by(id: scout_run_id)
-    return unless run&.pending?
+    return unless run && (run.pending? || run.failed?)
+
+    # A retry after a failure replaces any partial results from the first pass.
+    run.candidates.destroy_all if run.failed?
 
     result = Ai::EventScout.call(totem: run.totem)
 

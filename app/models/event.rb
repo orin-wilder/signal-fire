@@ -59,6 +59,7 @@ class Event < ApplicationRecord
     with: /\AFREQ=(WEEKLY|MONTHLY|DAILY|YEARLY)/,
     message: "must be a valid RRULE string"
   }, allow_nil: true
+  validate :recurrence_rule_must_parse
   validates :start_time, presence: true
   # Host/admin events must carry an explicit end time (the form requires it);
   # board submissions / scouted events fall back to DEFAULT_DURATION below.
@@ -102,17 +103,25 @@ class Event < ApplicationRecord
   def recurring? = recurrence_rule.present?
 
   def weekly?
-    recurring? &&
-      recurrence_rule.include?("FREQ=WEEKLY") &&
-      !recurrence_rule.match?(/INTERVAL=[2-9]/)
+    return false unless recurring? && recurrence_rule.include?("FREQ=WEEKLY")
+
+    interval = recurrence_rule[/INTERVAL=(\d+)/, 1]
+    interval.nil? || interval.to_i == 1
   end
 
+  # Falls back to start_time when the stored rule doesn't parse (pre-validation
+  # rows), matching the exhausted-schedule fallback below — callers everywhere
+  # assume a non-nil time, and a stale start_time just drops the event from
+  # upcoming lists instead of 500ing the board.
   def next_occurrence(after: Time.current)
     return start_time if one_time?
 
     schedule = IceCube::Schedule.new(start_time)
     schedule.add_recurrence_rule(IceCube::Rule.from_ical(recurrence_rule))
     schedule.next_occurrence(after - 1.second)&.to_time || start_time
+  rescue StandardError => e
+    Rails.logger.warn("[Event##{id}] unparseable recurrence_rule #{recurrence_rule.inspect}: #{e.class}: #{e.message}")
+    start_time
   end
 
   def recurrence_label
@@ -134,8 +143,9 @@ class Event < ApplicationRecord
     return unless approval_state_published? && provenance_host?
 
     NewEventNotificationJob.perform_later(id)
-    fire_at = next_occurrence - 1.hour
-    PreEventReminderJob.set(wait_until: fire_at).perform_later(id)
+    first_occurrence = next_occurrence
+    PreEventReminderJob.set(wait_until: first_occurrence - 1.hour)
+      .perform_later(id, first_occurrence.to_date)
   end
 
   def enqueue_cancellation_job
@@ -156,6 +166,16 @@ class Event < ApplicationRecord
   def end_time_after_start_time
     return unless start_time && end_time
     errors.add(:end_time, "must be after start time") if end_time <= start_time
+  end
+
+  # The format check above only vets the FREQ= prefix; garbage after it
+  # (e.g. "FREQ=WEEKLY;BYDAY=BANANA") used to persist and then 500 the board.
+  def recurrence_rule_must_parse
+    return if recurrence_rule.blank?
+
+    IceCube::Rule.from_ical(recurrence_rule)
+  rescue StandardError
+    errors.add(:recurrence_rule, "must be a valid RRULE string")
   end
 
   # Board submissions / scouted events arrive without an end time; give them a
