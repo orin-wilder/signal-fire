@@ -1,4 +1,5 @@
 upcoming_event:
+  approval_state: published
   totem: main_totem
   host_user: host_user
   title: Morning Run
@@ -11,6 +12,7 @@ upcoming_event:
   created_by_admin: false
 
 past_event:
+  approval_state: published
   totem: main_totem
   host_user: host_user
   title: Past Run
@@ -23,6 +25,7 @@ past_event:
   created_by_admin: false
 
 active_now_event:
+  approval_state: published
   totem: main_totem
   host_user: host_user
   title: Active Now Run
@@ -35,6 +38,7 @@ active_now_event:
   created_by_admin: false
 
 weekly_event:
+  approval_state: published
   totem: main_totem
   host_user: host_user
   title: Weekly Swim
@@ -48,6 +52,7 @@ weekly_event:
   created_by_admin: false
 
 co_host_event:
+  approval_state: published
   totem: main_totem
   host_user: co_host_user
   title: Co-host Event
@@ -60,6 +65,7 @@ co_host_event:
   created_by_admin: false
 
 cancelled_event:
+  approval_state: published
   totem: main_totem
   host_user: host_user
   title: Cancelled Run

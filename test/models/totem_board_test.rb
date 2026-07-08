@@ -17,7 +17,7 @@ class TotemBoardTest < ActiveSupport::TestCase
       totem: totem, host_user: users(:host_user),
       title: "Weekly Walk", recurrence_rule: "FREQ=WEEKLY;BYDAY=MO",
       start_time: 2.weeks.ago, end_time: 2.weeks.ago + 1.hour,
-      chat_url: "https://chat.whatsapp.com/x", chat_platform: :whatsapp, status: :active
+      chat_url: "https://chat.whatsapp.com/x", chat_platform: :whatsapp, status: :active, approval_state: :published
     )
     assert_not totem.board_empty?
   end
@@ -33,7 +33,7 @@ class TotemBoardTest < ActiveSupport::TestCase
       totem: totem, host_user: users(:host_user),
       title: "Recent Event", recurrence_rule: nil,
       start_time: 2.days.ago, end_time: 2.days.ago + 1.hour,
-      chat_url: "https://chat.whatsapp.com/r", chat_platform: :whatsapp, status: :active
+      chat_url: "https://chat.whatsapp.com/r", chat_platform: :whatsapp, status: :active, approval_state: :published
     )
     assert_not totem.board_empty?
   end
@@ -57,15 +57,15 @@ class TotemBoardTest < ActiveSupport::TestCase
     just_ended  = Event.create!(totem: totem, host_user: users(:host_user), title: "A",
                     recurrence_rule: nil,
                     start_time: 90.minutes.ago, end_time: 20.minutes.ago,
-                    chat_url: "https://chat.whatsapp.com/a", chat_platform: :whatsapp, status: :active)
+                    chat_url: "https://chat.whatsapp.com/a", chat_platform: :whatsapp, status: :active, approval_state: :published)
     happening   = Event.create!(totem: totem, host_user: users(:host_user), title: "B",
                     recurrence_rule: nil,
                     start_time: 10.minutes.ago, end_time: 50.minutes.from_now,
-                    chat_url: "https://chat.whatsapp.com/b", chat_platform: :whatsapp, status: :active)
+                    chat_url: "https://chat.whatsapp.com/b", chat_platform: :whatsapp, status: :active, approval_state: :published)
     starting    = Event.create!(totem: totem, host_user: users(:host_user), title: "C",
                     recurrence_rule: nil,
                     start_time: 20.minutes.from_now, end_time: 80.minutes.from_now,
-                    chat_url: "https://chat.whatsapp.com/c", chat_platform: :whatsapp, status: :active)
+                    chat_url: "https://chat.whatsapp.com/c", chat_platform: :whatsapp, status: :active, approval_state: :published)
 
     result = totem.active_now_events
     assert_equal [happening.id, starting.id, just_ended.id], result.map(&:id)

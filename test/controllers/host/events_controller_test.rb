@@ -50,6 +50,8 @@ class Host::EventsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_redirected_to host_events_path
     assert flash[:notice].present?
+    # The column default is pending_review; the host form is a publish act.
+    assert Event.order(:created_at).last.approval_state_published?
   end
 
   test "POST /host/events creates a weekly event and redirects" do

@@ -45,7 +45,8 @@ class CitiesControllerTest < ActionDispatch::IntegrationTest
       slug: "city-board-live-event",
       start_time: 10.minutes.ago,
       end_time: 50.minutes.from_now,
-      status: :active
+      status: :active,
+      approval_state: :published
     )
 
     get city_board_path

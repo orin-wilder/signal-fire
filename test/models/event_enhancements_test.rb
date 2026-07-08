@@ -13,7 +13,8 @@ class EventEnhancementsTest < ActiveSupport::TestCase
       title: "Test Event",
       start_time: 2.days.from_now.change(hour: 18),
       end_time: 2.days.from_now.change(hour: 20),
-      status: "active"
+      status: "active",
+      approval_state: "published"
     }
     Event.create!(defaults.merge(attrs))
   end

@@ -21,6 +21,9 @@ class Host::EventsController < Host::ApplicationController
   def create
     @event = Event.new(event_params)
     @event.host_user = current_user
+    # The column default is pending_review; a host publishing to their own
+    # venue is the explicit publish act.
+    @event.approval_state = "published"
 
     if unassigned_totem?(@event.totem_id)
       @event.errors.add(:totem_id, "is not one of your venues")
