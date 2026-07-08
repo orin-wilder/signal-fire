@@ -7,7 +7,9 @@ module Api::V1::Concerns::EventSerializer
   # followed_host_ids to be set as instance variables when current_user
   # is present (avoids per-event DB queries).
   def build_event_json(event)
-    host_profile = event.host_user.host_profile
+    # host_user is optional (board submissions / scouted events) — the host key
+    # stays present with nullable sub-fields, per the frozen API contract.
+    host_profile = event.host_user&.host_profile
 
     check_in    = nil
     following   = nil
@@ -37,7 +39,7 @@ module Api::V1::Concerns::EventSerializer
       host: {
         id:             event.host_user_id,
         slug:           host_profile&.slug,
-        name:           host_profile&.display_name || event.host_user.name,
+        name:           host_profile&.display_name || event.host_user&.name,
         blurb:          host_profile&.blurb,
         following:      following,
         host_follow_id: host_follow&.id

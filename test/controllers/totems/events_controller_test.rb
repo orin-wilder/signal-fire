@@ -124,4 +124,46 @@ class Totems::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "p", text: /HOST/i
   end
+
+  # ── Visibility gate (publicly_visible) ─────────────────────────────────────
+
+  test "pending_review event detail 404s for anonymous visitors" do
+    event = create_pending_event
+    get totem_event_path(event.totem.slug, event.slug)
+    assert_response :not_found
+  end
+
+  test "pending_review event calendar.ics 404s for anonymous visitors" do
+    event = create_pending_event
+    get event_calendar_path(event.totem.slug, event.slug)
+    assert_response :not_found
+  end
+
+  test "pending_review event detail 404s for a signed-in non-moderator" do
+    event = create_pending_event
+    post host_login_path, params: { email: users(:host_user).email, password: "password123" }
+    get totem_event_path(event.totem.slug, event.slug)
+    assert_response :not_found
+  end
+
+  test "pending_review event detail renders for an admin (moderation View link)" do
+    event = create_pending_event
+    post admin_login_path, params: { email: users(:admin_user).email, password: "password123" }
+    get totem_event_path(event.totem.slug, event.slug)
+    assert_response :success
+  end
+
+  private
+
+  def create_pending_event
+    totems(:main_totem).events.create!(
+      title: "Pending Submission",
+      start_time: 1.day.from_now,
+      end_time: 1.day.from_now + 2.hours,
+      status: "active",
+      provenance: "board_submission",
+      approval_state: "pending_review",
+      submitter_email: "submitter@example.com"
+    )
+  end
 end

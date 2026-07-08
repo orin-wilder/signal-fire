@@ -44,31 +44,19 @@ predicate `e.publicly_visible?` **must be threaded through every query/filter
 that feeds a public surface.** A new public listing that skips it is a trust bug
 — it shows unreviewed anonymous submissions to the world.
 
-Currently gated call sites (copy these patterns): `Totem#upcoming_events`,
+Gated call sites (copy these patterns): `Totem#upcoming_events`,
 `#active_now_events`, `#past_events`, `#board_empty?`, `Event.nearby_upcoming`,
-`Api::V1::TotemsController#show`, `app/helpers/cities_helper.rb`. Note both forms
+`Api::V1::TotemsController#show`, `app/helpers/cities_helper.rb`, and — since the
+2026-07 trust-gate hardening PR — the web/API event detail pages, web/API host
+profiles, `Api::V1::HomeController`, and `WeeklyDigestDeliveryJob`. Note both forms
 exist: the SQL scope (`events.active.publicly_visible`) and the Ruby predicate
 (`.select { |e| e.active? && e.publicly_visible? }`) — either is fine; absence is not.
 
-**Known gaps (documented at handoff, not yet fixed — verified 2026-07). Six call
-sites skip the gate. Do NOT copy any of them as a reference implementation, even
-though they look like idiomatic queries:**
-
-1. `Totems::EventsController#set_totem_and_event` — web event detail by slug.
-2. `Api::V1::EventsController#show` — API event detail by slug.
-3. `HostsController#show` (web, public host profile) — `status: :active` only.
-4. `Api::V1::HostsController#show` — same ungated query.
-5. `Api::V1::HomeController` (`build_st_pete_section`, `yours_next_event_for_*`)
-   — filters on `e.active?` only; the mobile home feed.
-6. `WeeklyDigestDeliveryJob#personal_events`/`#city_events` — `Event.active` with
-   no gate, and it **sends a real push** built from the event title. The worst one.
-
-Why this bites in practice: `Admin::PromoteScoutedEvent` assigns a real
-`host_user` to a `pending_review` scouted event *before* anyone publishes it —
-so an unreviewed AI-scouted listing can appear on that host's public profile
-(web + API), in the mobile home feed, and in a push notification. If you touch
-any of these, raise it with the owner before "fixing" silently — but treat all
-six as bugs to fix when touched, not as patterns to imitate.
+One deliberate exception: `Totems::EventsController#set_totem_and_event` bypasses
+the gate for `current_user&.can_moderate_totem?(@totem)` so the admin/totem-admin
+moderation queues' "View" links can preview pending events. Every other surface is
+unconditionally gated; each fix carries a controller/job test asserting a
+`pending_review` event is excluded — keep those green.
 
 ## Invariant 3 — notifications fan out ONLY for published host events
 
@@ -90,11 +78,10 @@ enqueues `EventCancellationNotificationJob` — which itself only notifies
 `one_time?` events (cancelling a recurring event sends nothing; see the job's
 guard). `PreEventReminderJob` self-chains weekly for `weekly?` events.
 
-Related admin-console quirk: `Admin::EventsController#create` never sets
-provenance, so console-created events keep the default `"host"` and DO fan out
-(it sets `created_by_admin: true` instead). `provenance: "admin"` only arises
-when a super-admin uses the public submission form. Possibly unintended —
-flagged at handoff; don't change silently.
+Admin console: `Admin::EventsController#create` sets `provenance: "admin"`
+explicitly (plus `created_by_admin: true`), so console-created events do NOT fan
+out — ruled by Ryan 2026-07-08 (previously they kept the `"host"` default and
+notified; that was a bug).
 
 ## Lifecycle and check-ins
 

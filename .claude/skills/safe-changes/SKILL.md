@@ -10,7 +10,7 @@ Every push to `main` deploys to production **unattended**. This skill lists the 
 ## Deploy reality (verify in `render.yaml`)
 
 - Render auto-deploys every push to `main`. There is **no CI gate** — GitHub Actions never run on this fork. Local verification is the only gate.
-- `startCommand: bundle exec rails db:prepare && bundle exec rails db:seed && rails server` — **migrations AND seeds run on every deploy, against prod data, with nobody watching.**
+- `startCommand: bundle exec rails db:prepare && rails server` — **migrations run on every deploy, against prod data, with nobody watching.** (`db:seed` was removed from the startCommand 2026-07 — seeds are demo data with well-known passwords, and additionally no-op in production.)
   - `db:prepare` (not `db:migrate`) is deliberate: Solid Cache/Cable schemas load from `db/cache_schema.rb` etc., not migrations. Don't "simplify" it to `db:migrate` — the cache-backed submission throttle 500s without `solid_cache_entries`.
   - A bad migration = prod down until you fix forward. There is no staging environment.
 - `healthCheckPath: /about` — breaking that route breaks deploys.
@@ -21,7 +21,7 @@ Every push to `main` deploys to production **unattended**. This skill lists the 
 2. **Printed-QR routes.** Physical QR codes and signage in the field point at `/t/:slug` (totem/venue board) and `/g/:code` (short code). These must resolve forever. The 301s in `config/routes.rb` (`/stpeteboards`→`/stpete`, `/board/:totem_slug`→`/t/%{totem_slug}`) must stay.
 3. **The `publicly_visible` gate.** Every public read path MUST apply `Event.publicly_visible` (i.e. `approval_state = published`) so pending/unverified content never reaches a public surface. When adding any public query, thread the scope through (see `app/models/event.rb` scope + `nearby_upcoming` for the pattern).
 4. **Notification fan-out gating.** `Event#enqueue_new_event_jobs` (`after_create`) only fires for `published` + `host`-provenance events; `after_update` enqueues cancellation on status flip to `cancelled`. **A backfill that creates events or flips `status` via ActiveRecord callbacks can mass-notify real users.** Check `app/models/event.rb` callbacks before any bulk write.
-5. **Seeds run in production.** `db/seeds.rb` executes on every deploy. It MUST stay idempotent (`find_or_create_by!` pattern throughout) and prod-appropriate. Never add non-idempotent or destructive statements to seeds.
+5. **Seeds must never reach production.** As of 2026-07 `db/seeds.rb` no-ops in production (guard at the top) and the Render startCommand no longer runs it — the seed accounts carry a shared well-known password. Keep the guard; keep seeds idempotent (`find_or_create_by!` throughout) for local use.
 
 ## Migration practice
 
@@ -37,10 +37,13 @@ Every push to `main` deploys to production **unattended**. This skill lists the 
 
 ## Known gaps — do not worsen, fix when touched
 
-All violate contract #3/#1 today (verified 2026-07; re-verify before fixing; full list with detail in the `event-domain` skill):
+(The 2026-07 trust-gate hardening PR closed the handoff-era gaps: the six ungated
+`publicly_visible` read paths and the serializer 500 on host-less events — the
+serializer now emits the `host` key with nullable sub-fields, per contract #1.
+Tests assert each path excludes `pending_review` events; keep them green.)
 
-- `Api::V1::Concerns::EventSerializer#build_event_json` calls `event.host_user.host_profile` unguarded — `host_user` is optional since Phase 2, so a **published board-submission/scouted event 500s the mobile API** on any totem that has one.
-- Six read paths skip `publicly_visible`: the web + API event *detail* endpoints, the web + API host-profile pages, `Api::V1::HomeController`, and — worst — `WeeklyDigestDeliveryJob`, which can push an unreviewed event title to phones. Do not copy any of them as a query pattern.
+- Hardcoded `signalfire.live` URLs (see Brand-coupled strings below) — owned by
+  the brand-isolation PR.
 
 ## Brand-coupled strings (rebrand hazard)
 

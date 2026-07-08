@@ -22,6 +22,12 @@ class Host::EventsController < Host::ApplicationController
     @event = Event.new(event_params)
     @event.host_user = current_user
 
+    if unassigned_totem?(@event.totem_id)
+      @event.errors.add(:totem_id, "is not one of your venues")
+      @totems = host_totems
+      return render :new, status: :unprocessable_entity
+    end
+
     if @event.save
       AnalyticsService.track(
         "host_event_created",
@@ -42,6 +48,13 @@ class Host::EventsController < Host::ApplicationController
   end
 
   def update
+    new_totem_id = event_params[:totem_id]
+    if new_totem_id.present? && unassigned_totem?(new_totem_id)
+      @event.errors.add(:totem_id, "is not one of your venues")
+      @totems = host_totems
+      return render :edit, status: :unprocessable_entity
+    end
+
     if @event.update(event_params)
       redirect_to host_events_path, notice: "Event updated."
     else
@@ -71,6 +84,12 @@ class Host::EventsController < Host::ApplicationController
     Totem.joins(:host_totem_assignments)
          .where(host_totem_assignments: { host_user_id: current_user.id })
          .order(:name)
+  end
+
+  # A host may only create events on (or move events to) venues they are
+  # assigned to — totem_id comes from params and is otherwise unchecked.
+  def unassigned_totem?(totem_id)
+    !current_user.host_totem_assignments.exists?(totem_id: totem_id)
   end
 
   def event_params

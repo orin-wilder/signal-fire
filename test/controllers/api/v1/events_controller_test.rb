@@ -81,4 +81,38 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert response.parsed_body.dig("event", "recurrence_label").present?
   end
+
+  # ── Visibility gate (publicly_visible) ─────────────────────────────────────
+
+  test "returns 404 for pending_review event" do
+    event = totems(:main_totem).events.create!(
+      title: "Pending Submission",
+      start_time: 1.day.from_now,
+      status: "active",
+      provenance: "board_submission",
+      approval_state: "pending_review"
+    )
+    get api_v1_totem_event_path(totem_slug: totems(:main_totem).slug,
+                                event_slug: event.slug), as: :json
+    assert_response :not_found
+  end
+
+  # Regression: host_user is optional (board submissions); serialization must not
+  # 500 — the host key stays present with nullable sub-fields (frozen contract).
+  test "published host-less event serializes with nullable host fields" do
+    event = totems(:main_totem).events.create!(
+      title: "Community Posted Event",
+      start_time: 1.day.from_now,
+      status: "active",
+      provenance: "board_submission",
+      approval_state: "published"
+    )
+    get api_v1_totem_event_path(totem_slug: totems(:main_totem).slug,
+                                event_slug: event.slug), as: :json
+    assert_response :success
+    body = response.parsed_body
+    assert body["event"].key?("host")
+    assert_nil body.dig("event", "host", "id")
+    assert_nil body.dig("event", "host", "name")
+  end
 end

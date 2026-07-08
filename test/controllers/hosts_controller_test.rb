@@ -47,4 +47,24 @@ class HostsControllerTest < ActionDispatch::IntegrationTest
     get host_page_path(@profile.slug)
     assert_response :success
   end
+
+  # ── Visibility gate (publicly_visible) ─────────────────────────────────────
+
+  # e.g. a scouted event assigned to this host but not yet approved must not
+  # appear on their public profile.
+  test "pending_review events are hidden from the host page" do
+    totems(:main_totem).events.create!(
+      title: "Unreviewed Scouted Event",
+      host_user: @host,
+      start_time: 1.day.from_now,
+      end_time: 1.day.from_now + 2.hours,
+      status: "active",
+      provenance: "scouted",
+      approval_state: "pending_review",
+      source_url: "https://example.com/source"
+    )
+    get host_page_path(@profile.slug)
+    assert_response :success
+    assert_no_match(/Unreviewed Scouted Event/, response.body)
+  end
 end

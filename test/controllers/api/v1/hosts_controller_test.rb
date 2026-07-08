@@ -82,4 +82,22 @@ class Api::V1::HostsControllerTest < ActionDispatch::IntegrationTest
     assert_equal true,      body.dig("host", "following")
     assert_equal follow.id, body.dig("host", "host_follow_id")
   end
+
+  # ── Visibility gate (publicly_visible) ─────────────────────────────────────
+
+  test "pending_review events are excluded from upcoming_events" do
+    totems(:main_totem).events.create!(
+      title: "Unreviewed Scouted Event",
+      host_user: @host,
+      start_time: 1.day.from_now,
+      end_time: 1.day.from_now + 2.hours,
+      status: "active",
+      provenance: "scouted",
+      approval_state: "pending_review",
+      source_url: "https://example.com/source"
+    )
+    get "/api/v1/hosts/#{@profile.slug}", as: :json
+    titles = response.parsed_body.dig("host", "upcoming_events").map { |e| e["title"] }
+    assert_not_includes titles, "Unreviewed Scouted Event"
+  end
 end

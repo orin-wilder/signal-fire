@@ -172,4 +172,33 @@ class Host::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_equal event.id,  tracked.first[1][:event_id]
     assert_equal @totem.id, tracked.first[1][:totem_id]
   end
+
+  # ── Venue assignment authorization ─────────────────────────────────────────
+
+  test "POST /host/events rejects a totem the host is not assigned to" do
+    date = 2.days.from_now.to_date
+    assert_no_difference "Event.count" do
+      post host_events_path, params: {
+        event: {
+          title: "Cross-Venue Event",
+          totem_id: totems(:secondary_totem).id,
+          recurrence_rule: "",
+          start_date: date.iso8601,
+          start_time_of_day: "07:00",
+          end_time_of_day: "09:00",
+          chat_platform: "whatsapp",
+          chat_url: "https://chat.whatsapp.com/crossvenue"
+        }
+      }
+    end
+    assert_response :unprocessable_entity
+  end
+
+  test "PATCH /host/events/:id rejects moving an event to an unassigned totem" do
+    patch host_event_path(@event), params: {
+      event: { title: "Moved Event", totem_id: totems(:secondary_totem).id }
+    }
+    assert_response :unprocessable_entity
+    assert_equal @totem.id, @event.reload.totem_id
+  end
 end

@@ -123,6 +123,32 @@ class Admin::EventsControllerTest < ActionDispatch::IntegrationTest
     assert Event.last.weekly?
   end
 
+  # Staff-entered events are labeled admin provenance and never fan out
+  # notifications (ruled 2026-07-08; previously kept the "host" default and
+  # notified followers).
+  test "POST /admin/events sets admin provenance and enqueues no notifications" do
+    sign_in_as_admin
+    date = 3.days.from_now.to_date
+    assert_no_enqueued_jobs(only: [ NewEventNotificationJob, PreEventReminderJob ]) do
+      post admin_events_path, params: {
+        event: {
+          host_user_id: @host.id,
+          title: "Staff Entered Event",
+          totem_id: @totem.id,
+          recurrence_rule: "",
+          start_date: date.iso8601,
+          start_time_of_day: "10:00",
+          end_time_of_day: "11:00",
+          chat_platform: "whatsapp",
+          chat_url: "https://chat.whatsapp.com/staffentered"
+        }
+      }
+    end
+    created = Event.find_by!(title: "Staff Entered Event")
+    assert created.provenance_admin?
+    assert created.approval_state_published?
+  end
+
   # ── Edit / Update ─────────────────────────────────────────────────────────
 
   test "GET /admin/events/:id/edit renders form" do
